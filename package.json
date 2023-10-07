@@ -4,11 +4,30 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "gulp",
+    "build": "gulp build"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "browser-sync": "latest",
+    "del": "latest",
+    "eslint": "latest",
+    "gulp": "latest",
+    "gulp-clean-css": "latest",
+    "gulp-copy": "latest",
+    "gulp-file-include": "latest",
+    "gulp-rename": "latest",
+    "gulp-replace": "latest",
+    "gulp-sass": "latest",
+    "gulp-sourcemaps": "latest",
+    "gulp-typescript": "latest",
+    "gulp-uglify": "latest",
+    "gulp-watch": "latest",
+    "sass": "latest",
+    "typescript": "latest"
   }
 }
