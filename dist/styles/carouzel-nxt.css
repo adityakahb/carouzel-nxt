@@ -1,0 +1,11 @@
+[data-carouzelnxt] ::after,
+[data-carouzelnxt] ::before {
+  box-sizing: border-box;
+}
+[data-carouzelnxt] button:not(:disabled),
+[data-carouzelnxt] [type=button]:not(:disabled),
+[data-carouzelnxt] [type=reset]:not(:disabled),
+[data-carouzelnxt] [type=submit]:not(:disabled) {
+  cursor: pointer;
+}
+/*# sourceMappingURL=carouzel-nxt.css.map */

@@ -1,8 +1,43 @@
-const CarouzeNXT = (() => {
-  const __version = `1.0.0`;
+const CarouzelNXT = ((version) => {
+  interface IOpts {
+    gSelector: string;
+    idPrefix: string;
+    instanceIndex: number;
+  }
 
-  const $$ = (str: string) => {
-    return document.querySelectorAll(str) || [];
+  const constants = {
+    version,
+  };
+
+  interface IInstances {
+    [key: string]: any;
+  }
+
+  let allInstances: IInstances = {};
+
+  let opts: IOpts = {
+    gSelector: "[data-carouzelnxt-auto]",
+    idPrefix: "__carouzelnxt",
+    instanceIndex: 0,
+  };
+
+  const $ = (parent: HTMLElement | Document, str: string) => {
+    return parent.querySelectorAll(str) || [];
+  };
+
+  // const wrapElement = (query: Element[], tag: string) => {
+  //   document.querySelectorAll(query).forEach((elem) => {
+  //     const div = document.createElement(tag);
+  //     elem.parentElement.insertBefore(div, elem);
+  //     div.appendChild(elem);
+  //   });
+  // };
+
+  const generateID = (element: Element): string => {
+    return (
+      element.getAttribute("id") ||
+      `${opts.idPrefix}_${new Date().getTime()}_root_${opts.instanceIndex++}`
+    );
   };
 
   class Root {
@@ -15,10 +50,23 @@ const CarouzeNXT = (() => {
       return Root.instance;
     }
     public initGlobal() {
-      console.log("==========in initGlobal 7");
+      this.init(new Boolean(true));
     }
-    public init() {
-      console.log("==========in init");
+    public init(selector: Boolean | string) {
+      const allSliders =
+        selector instanceof Boolean && selector.valueOf()
+          ? $(document as Document, opts.gSelector)
+          : $(document as Document, selector.toString());
+
+      allSliders.forEach((slider: Element) => {
+        const sliderId = generateID(slider);
+        slider.setAttribute("id", sliderId);
+        if (!allInstances[sliderId]) {
+          allInstances[sliderId] = slider;
+        }
+      });
+
+      console.log("==============allInstances", allInstances);
     }
     public destroy() {
       console.log("==========in destroy");
@@ -28,8 +76,8 @@ const CarouzeNXT = (() => {
   Root.getInstance().initGlobal();
 
   return {
-    version: __version,
+    version: constants.version,
     init: Root.getInstance().init,
     destoy: Root.getInstance().destroy,
   };
-})();
+})("1.0.0");

@@ -17,6 +17,7 @@
     "del": "latest",
     "eslint": "latest",
     "gulp": "latest",
+    "gulp-clean": "^0.4.0",
     "gulp-clean-css": "latest",
     "gulp-copy": "latest",
     "gulp-file-include": "latest",
