@@ -17,6 +17,7 @@ const allPaths = {
   js: "./dist/scripts/carouzel-nxt.js",
   partials: "./partials",
   sass: "src/sass/carouzel-nxt.scss",
+  sass_site: "public/index.scss",
   ts: "src/**/*.ts",
 };
 
@@ -48,6 +49,14 @@ gulp.task("ts", function () {
       })
     )
     .pipe(gulp.dest("dist/scripts"));
+});
+
+gulp.task("sass_site", function () {
+  return gulp
+    .src(allPaths.sass_site)
+    .pipe(sourcemaps.init())
+    .pipe(sass.sync().on("error", sass.logError))
+    .pipe(gulp.dest("./"));
 });
 
 gulp.task("sass", function () {
@@ -85,7 +94,7 @@ gulp.task(
 
 gulp.task(
   "serve",
-  gulp.series("html", "ts", "sass", function () {
+  gulp.series("html", "ts", "sass", "sass_site", function () {
     browserSync.init({
       server: {
         baseDir: "./",
@@ -100,8 +109,14 @@ gulp.task(
     gulp
       .watch(allPaths.sass, gulp.series("sass"))
       .on("change", browserSync.reload);
+    gulp
+      .watch(allPaths.sass_site, gulp.series("sass_site"))
+      .on("change", browserSync.reload);
   })
 );
 
 gulp.task("default", gulp.series("serve"));
-gulp.task("build", gulp.series("html", "ts", "sass", "minify-css", "uglifyjs"));
+gulp.task(
+  "build",
+  gulp.series("html", "ts", "sass", "sass_site", "minify-css", "uglifyjs")
+);

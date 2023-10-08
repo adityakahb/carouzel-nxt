@@ -8,4 +8,24 @@
 [data-carouzelnxt] [type=submit]:not(:disabled) {
   cursor: pointer;
 }
+[data-carouzelnxt] [data-carouzelnxt-track] {
+  display: flex;
+  overflow-x: scroll;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+[data-carouzelnxt].__carouzelnxt-active [data-carouzelnxt-track] {
+  display: flex;
+}
+[data-carouzelnxt] [data-carouzelnxt-slide] {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  background-color: lightgray;
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+}
 /*# sourceMappingURL=carouzel-nxt.css.map */

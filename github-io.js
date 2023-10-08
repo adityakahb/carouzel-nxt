@@ -1,8 +1,9 @@
 var loadIO = function () {
+  console.log("=====1", CarouzelNXT);
   if (CarouzelNXT) {
     CarouzelNXT.init(".carouzelnxt");
   }
 };
-document.addEventListener("DOMContentLoaded", function () {
+window.addEventListener("load", function () {
   loadIO();
 });
