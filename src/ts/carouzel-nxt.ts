@@ -1,4 +1,51 @@
 const CarouzelNXT = ((version: string) => {
+  interface IBreakpoint {
+    minWidth: number | string;
+    centerBetween: number;
+    enableTouchSwipe: boolean;
+    showArrows: boolean;
+    showNavigation: boolean;
+    slideGutter: number;
+    slidesToScroll: number;
+    slidesToShow: number;
+    verticalHeight: number;
+  }
+
+  interface ISettings {
+    activeClass?: string;
+    afterInitFn?: () => void;
+    afterScrollFn?: () => void;
+    appendUrlHash?: boolean;
+    autoplay?: boolean;
+    autoplaySpeed?: number;
+    beforeInitFn?: () => void;
+    beforeScrollFn?: () => void;
+    breakpoints?: IBreakpoint[];
+    disabledClass?: string;
+    dotIndexClass?: string;
+    dotTitleClass?: string;
+    duplicateClass?: string;
+    editModeClass?: string;
+    hiddenClass?: string;
+    horizontalScrollClass?: string;
+    idPrefix?: string;
+    isInfinite?: boolean;
+    isRtl?: boolean;
+    isVertical?: boolean;
+    nextDirectionClass?: string;
+    pauseOnHover?: boolean;
+    previousDirectionClass?: string;
+    showArrows?: boolean;
+    showNavigation?: boolean;
+    showScrollbar?: boolean;
+    slideGutter?: number;
+    slidesToScroll?: number;
+    slidesToShow?: number;
+    trackUrlHash?: boolean;
+    verticalHeight?: number;
+    verticalScrollClass?: string;
+  }
+
   interface ICore {
     nextBtn: HTMLElement;
     parent: HTMLElement;
@@ -8,35 +55,57 @@ const CarouzelNXT = ((version: string) => {
     scrollWidth: string;
   }
 
-  interface IOpts {
-    gSelector: string;
-    trackSelector: string;
-    slideSelector: string;
-    idPrefix: string;
-    instanceIndex: number;
-    prevBtnSelector: string;
-    nextBtnSelector: string;
-  }
-
   interface IInstances {
     [key: string]: ICore;
   }
 
   const _constants = {
-    version,
-    pxUnit: "px",
-  };
-
-  const allInstances: IInstances = {};
-
-  const opts: IOpts = {
+    _v: version,
+    px: "px",
     gSelector: "[data-carouzelnxt-auto]",
     trackSelector: "[data-carouzelnxt-track]",
     slideSelector: "[data-carouzelnxt-slide]",
     prevBtnSelector: "[data-carouzelnxt-previousarrow]",
     nextBtnSelector: "[data-carouzelnxt-nextarrow]",
+    groupSelector: "[data-carouzelnxt-group]",
+  };
+
+  const allInstances: IInstances = {};
+  let instanceIndex = 0;
+
+  const opts: ISettings = {
+    activeClass: "__carouzelnxt-active",
+    afterInitFn: () => {},
+    afterScrollFn: () => {},
+    appendUrlHash: false,
+    autoplay: false,
+    autoplaySpeed: 0,
+    beforeInitFn: () => {},
+    beforeScrollFn: () => {},
+    breakpoints: [],
+    disabledClass: "__carouzelnxt-disabled",
+    dotIndexClass: "__carouzelnxt-dot",
+    dotTitleClass: "__carouzelnxt-dot-title",
+    duplicateClass: "__carouzelnxt-duplicate",
+    editModeClass: "__carouzelnxt-edit-mode",
+    hiddenClass: "__carouzelnxt-hidden",
+    horizontalScrollClass: "__carouzelnxt-is-horizontal",
     idPrefix: "__carouzelnxt",
-    instanceIndex: 0,
+    isInfinite: true,
+    isRtl: false,
+    isVertical: false,
+    nextDirectionClass: "__carouzelnxt-going-next",
+    pauseOnHover: false,
+    previousDirectionClass: "__carouzelnxt-going-previous",
+    showArrows: true,
+    showNavigation: true,
+    showScrollbar: false,
+    slideGutter: 0,
+    slidesToScroll: 1,
+    slidesToShow: 1,
+    trackUrlHash: false,
+    verticalHeight: 500,
+    verticalScrollClass: "__carouzelnxt-is-vertical",
   };
 
   const $$ = (parent: Element | Document, str: string) => {
@@ -50,7 +119,7 @@ const CarouzelNXT = ((version: string) => {
   const generateID = (element: Element): string => {
     return (
       element.getAttribute("id") ||
-      `${opts.idPrefix}_${new Date().getTime()}_root_${opts.instanceIndex++}`
+      `${opts.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`
     );
   };
 
@@ -90,10 +159,8 @@ const CarouzelNXT = ((version: string) => {
 
   const applyLayout = (core: ICore) => {
     core.slides.forEach((slide) => {
-      slide.style.width = core.parent.clientWidth + _constants.pxUnit;
-      slide.style.flex = `0 0 ${
-        core.parent.clientWidth / 3 + _constants.pxUnit
-      }`;
+      slide.style.width = core.parent.clientWidth + _constants.px;
+      slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
     });
 
     const tile1 = document.createElement("div") as HTMLElement;
@@ -111,19 +178,15 @@ const CarouzelNXT = ((version: string) => {
     unwrapAll(tile3);
   };
 
-  const initCarouzelNxt = (slider: Element): ICore => {
+  const initCarouzelNxt = (slider: Element, options: ISettings): ICore => {
     const core: ICore = {
-      nextBtn: $(slider, opts.nextBtnSelector) as HTMLElement,
+      nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
       parent: slider as HTMLElement,
-      prevBtn: $(slider, opts.prevBtnSelector) as HTMLElement,
-      scrollWidth: (slider as HTMLElement).clientWidth + _constants.pxUnit,
-      slides: $$(slider, opts.slideSelector) as HTMLElement[],
-      track: $(slider, opts.trackSelector) as HTMLElement,
+      prevBtn: $(slider, _constants.prevBtnSelector) as HTMLElement,
+      scrollWidth: (slider as HTMLElement).clientWidth + _constants.px,
+      slides: $$(slider, _constants.slideSelector) as HTMLElement[],
+      track: $(slider, _constants.trackSelector) as HTMLElement,
     };
-
-    core.track.addEventListener("scroll", () => {
-      console.log("=============properties", properties(core.slides[0]));
-    });
 
     applyLayout(core);
 
@@ -145,14 +208,14 @@ const CarouzelNXT = ((version: string) => {
     public init(selector: boolean | string) {
       const allSliders =
         typeof selector === "boolean" && selector
-          ? $$(document as Document, opts.gSelector)
+          ? $$(document as Document, _constants.gSelector)
           : $$(document as Document, selector.toString());
 
       allSliders.forEach((slider: Element) => {
         const sliderId = generateID(slider);
         slider.setAttribute("id", sliderId);
         if (!allInstances[sliderId]) {
-          allInstances[sliderId] = initCarouzelNxt(slider);
+          allInstances[sliderId] = initCarouzelNxt(slider, {});
         }
       });
     }
@@ -164,7 +227,7 @@ const CarouzelNXT = ((version: string) => {
   Root.getInstance().initGlobal();
 
   return {
-    version: _constants.version,
+    version: _constants._v,
     init: Root.getInstance().init,
     destoy: Root.getInstance().destroy,
     getInstance: () => {},
