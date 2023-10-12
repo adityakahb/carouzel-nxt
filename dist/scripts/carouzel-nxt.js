@@ -12,13 +12,14 @@ var CarouzelNXT = (function (version) {
     };
     var allInstances = {};
     var instanceIndex = 0;
-    var opts = {
+    var cDefaults = {
         activeClass: "__carouzelnxt-active",
         afterInitFn: function () { },
         afterScrollFn: function () { },
+        animationSpeed: 5000,
         appendUrlHash: false,
         autoplay: false,
-        autoplaySpeed: 0,
+        autoplaySpeed: 2000,
         beforeInitFn: function () { },
         beforeScrollFn: function () { },
         breakpoints: [],
@@ -28,14 +29,14 @@ var CarouzelNXT = (function (version) {
         duplicateClass: "__carouzelnxt-duplicate",
         editModeClass: "__carouzelnxt-edit-mode",
         hiddenClass: "__carouzelnxt-hidden",
-        horizontalScrollClass: "__carouzelnxt-is-horizontal",
+        horizontalScrollClass: "__carouzelnxt-horizontal",
         idPrefix: "__carouzelnxt",
         isInfinite: true,
         isRtl: false,
         isVertical: false,
-        nextDirectionClass: "__carouzelnxt-going-next",
+        nextDirectionClass: "__carouzelnxt-to-next",
         pauseOnHover: false,
-        previousDirectionClass: "__carouzelnxt-going-previous",
+        previousDirectionClass: "__carouzelnxt-to-previous",
         showArrows: true,
         showNavigation: true,
         showScrollbar: false,
@@ -44,7 +45,7 @@ var CarouzelNXT = (function (version) {
         slidesToShow: 1,
         trackUrlHash: false,
         verticalHeight: 500,
-        verticalScrollClass: "__carouzelnxt-is-vertical",
+        verticalScrollClass: "__carouzelnxt-vertical",
     };
     var $$ = function (parent, str) {
         return Array.prototype.slice.call(parent.querySelectorAll(str) || []);
@@ -54,7 +55,7 @@ var CarouzelNXT = (function (version) {
     };
     var generateID = function (element) {
         return (element.getAttribute("id") ||
-            "".concat(opts.idPrefix, "_").concat(new Date().getTime(), "_root_").concat(instanceIndex++));
+            "".concat(cDefaults.idPrefix, "_").concat(new Date().getTime(), "_root_").concat(instanceIndex++));
     };
     var wrapAll = function (elements, wrapper) {
         elements.length &&
@@ -73,6 +74,29 @@ var CarouzelNXT = (function (version) {
             // remove the empty element
             element.remove();
         }
+    };
+    var deepMerge = function (target, source) {
+        if (typeof target !== "object" || typeof source !== "object") {
+            return source;
+        }
+        for (var key in source) {
+            if (source[key] instanceof Array) {
+                if (!target[key] || !(target[key] instanceof Array)) {
+                    target[key] = [];
+                }
+                target[key] = target[key].concat(source[key]);
+            }
+            else if (source[key] instanceof Object) {
+                if (!target[key] || !(target[key] instanceof Object)) {
+                    target[key] = {};
+                }
+                target[key] = deepMerge(target[key], source[key]);
+            }
+            else {
+                target[key] = source[key];
+            }
+        }
+        return target;
     };
     var properties = function (elem) {
         var rectangle = elem.getBoundingClientRect();
@@ -105,17 +129,34 @@ var CarouzelNXT = (function (version) {
         unwrapAll(tile2);
         unwrapAll(tile3);
     };
+    var areValidOptions = function (options) {
+        var _a;
+        console.log("==========options", options);
+        var receivedKeys = Object.keys(options);
+        var defaultKeys = Object.keys(cDefaults);
+        var invalidKeys = receivedKeys.filter(function (key) { return defaultKeys.indexOf(key) === -1; });
+        if (invalidKeys.length) {
+            return false;
+        }
+        console.log("=======options.breakpoints", options.breakpoints);
+        var breakpointArr = (_a = options.breakpoints) === null || _a === void 0 ? void 0 : _a.map(function (breakpoint) { return breakpoint.minWidth; });
+        console.log("===========breakpointArr", breakpointArr);
+        return true;
+    };
     var initCarouzelNxt = function (slider, options) {
-        var core = {
-            nextBtn: $(slider, _constants.nextBtnSelector),
-            parent: slider,
-            prevBtn: $(slider, _constants.prevBtnSelector),
-            scrollWidth: slider.clientWidth + _constants.px,
-            slides: $$(slider, _constants.slideSelector),
-            track: $(slider, _constants.trackSelector),
-        };
-        applyLayout(core);
-        return core;
+        if (areValidOptions(options)) {
+            var core = {
+                nextBtn: $(slider, _constants.nextBtnSelector),
+                parent: slider,
+                prevBtn: $(slider, _constants.prevBtnSelector),
+                scrollWidth: slider.clientWidth + _constants.px,
+                slides: $$(slider, _constants.slideSelector),
+                track: $(slider, _constants.trackSelector),
+            };
+            applyLayout(core);
+            return core;
+        }
+        return null;
     };
     var Root = /** @class */ (function () {
         function Root() {
@@ -127,17 +168,22 @@ var CarouzelNXT = (function (version) {
             return Root.instance;
         };
         Root.prototype.initGlobal = function () {
-            this.init(true);
+            this.init(true, "");
         };
-        Root.prototype.init = function (selector) {
-            var allSliders = typeof selector === "boolean" && selector
+        Root.prototype.init = function (selector, opts) {
+            var receivedOptionsStr;
+            var isGlobal = typeof selector === "boolean" && selector;
+            var allSliders = isGlobal
                 ? $$(document, _constants.gSelector)
                 : $$(document, selector.toString());
             allSliders.forEach(function (slider) {
                 var sliderId = generateID(slider);
                 slider.setAttribute("id", sliderId);
                 if (!allInstances[sliderId]) {
-                    allInstances[sliderId] = initCarouzelNxt(slider, {});
+                    receivedOptionsStr = isGlobal
+                        ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
+                        : opts;
+                    allInstances[sliderId] = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
                 }
             });
         };
@@ -148,12 +194,14 @@ var CarouzelNXT = (function (version) {
     }());
     Root.getInstance().initGlobal();
     return {
-        version: _constants._v,
-        init: Root.getInstance().init,
+        addSlide: function () { },
+        afterGlobalInit: function () { },
+        beforeGlobalInit: function () { },
         destoy: Root.getInstance().destroy,
         getInstance: function () { },
-        add: function () { },
-        remove: function () { },
+        init: Root.getInstance().init,
+        removeSlide: function () { },
+        version: _constants._v,
     };
 })("1.0.0");
 CarouzelNXT;

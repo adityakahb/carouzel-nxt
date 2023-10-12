@@ -1,8 +1,8 @@
 const CarouzelNXT = ((version: string) => {
   interface IBreakpoint {
-    minWidth: number | string;
     centerBetween: number;
     enableTouchSwipe: boolean;
+    minWidth: number;
     showArrows: boolean;
     showNavigation: boolean;
     slideGutter: number;
@@ -15,6 +15,7 @@ const CarouzelNXT = ((version: string) => {
     activeClass?: string;
     afterInitFn?: () => void;
     afterScrollFn?: () => void;
+    animationSpeed?: number;
     appendUrlHash?: boolean;
     autoplay?: boolean;
     autoplaySpeed?: number;
@@ -56,7 +57,7 @@ const CarouzelNXT = ((version: string) => {
   }
 
   interface IInstances {
-    [key: string]: ICore;
+    [key: string]: ICore | null;
   }
 
   const _constants = {
@@ -73,13 +74,14 @@ const CarouzelNXT = ((version: string) => {
   const allInstances: IInstances = {};
   let instanceIndex = 0;
 
-  const opts: ISettings = {
+  const cDefaults: ISettings = {
     activeClass: "__carouzelnxt-active",
     afterInitFn: () => {},
     afterScrollFn: () => {},
+    animationSpeed: 5000,
     appendUrlHash: false,
     autoplay: false,
-    autoplaySpeed: 0,
+    autoplaySpeed: 2000,
     beforeInitFn: () => {},
     beforeScrollFn: () => {},
     breakpoints: [],
@@ -89,14 +91,14 @@ const CarouzelNXT = ((version: string) => {
     duplicateClass: "__carouzelnxt-duplicate",
     editModeClass: "__carouzelnxt-edit-mode",
     hiddenClass: "__carouzelnxt-hidden",
-    horizontalScrollClass: "__carouzelnxt-is-horizontal",
+    horizontalScrollClass: "__carouzelnxt-horizontal",
     idPrefix: "__carouzelnxt",
     isInfinite: true,
     isRtl: false,
     isVertical: false,
-    nextDirectionClass: "__carouzelnxt-going-next",
+    nextDirectionClass: "__carouzelnxt-to-next",
     pauseOnHover: false,
-    previousDirectionClass: "__carouzelnxt-going-previous",
+    previousDirectionClass: "__carouzelnxt-to-previous",
     showArrows: true,
     showNavigation: true,
     showScrollbar: false,
@@ -105,7 +107,7 @@ const CarouzelNXT = ((version: string) => {
     slidesToShow: 1,
     trackUrlHash: false,
     verticalHeight: 500,
-    verticalScrollClass: "__carouzelnxt-is-vertical",
+    verticalScrollClass: "__carouzelnxt-vertical",
   };
 
   const $$ = (parent: Element | Document, str: string) => {
@@ -119,7 +121,7 @@ const CarouzelNXT = ((version: string) => {
   const generateID = (element: Element): string => {
     return (
       element.getAttribute("id") ||
-      `${opts.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`
+      `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`
     );
   };
 
@@ -141,6 +143,30 @@ const CarouzelNXT = ((version: string) => {
       // remove the empty element
       element.remove();
     }
+  };
+
+  const deepMerge = (target: any, source: any) => {
+    if (typeof target !== "object" || typeof source !== "object") {
+      return source;
+    }
+
+    for (const key in source) {
+      if (source[key] instanceof Array) {
+        if (!target[key] || !(target[key] instanceof Array)) {
+          target[key] = [];
+        }
+        target[key] = target[key].concat(source[key]);
+      } else if (source[key] instanceof Object) {
+        if (!target[key] || !(target[key] instanceof Object)) {
+          target[key] = {};
+        }
+        target[key] = deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+
+    return target;
   };
 
   const properties = (elem: HTMLElement) => {
@@ -178,19 +204,46 @@ const CarouzelNXT = ((version: string) => {
     unwrapAll(tile3);
   };
 
-  const initCarouzelNxt = (slider: Element, options: ISettings): ICore => {
-    const core: ICore = {
-      nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
-      parent: slider as HTMLElement,
-      prevBtn: $(slider, _constants.prevBtnSelector) as HTMLElement,
-      scrollWidth: (slider as HTMLElement).clientWidth + _constants.px,
-      slides: $$(slider, _constants.slideSelector) as HTMLElement[],
-      track: $(slider, _constants.trackSelector) as HTMLElement,
-    };
+  const areValidOptions = (options: ISettings) => {
+    console.log("==========options", options);
+    const receivedKeys = Object.keys(options);
+    const defaultKeys = Object.keys(cDefaults);
+    const invalidKeys = receivedKeys.filter(
+      (key) => defaultKeys.indexOf(key) === -1
+    );
+    if (invalidKeys.length) {
+      return false;
+    }
 
-    applyLayout(core);
+    console.log("=======options.breakpoints", options.breakpoints);
 
-    return core;
+    const breakpointArr = options.breakpoints?.map(
+      (breakpoint) => breakpoint.minWidth
+    );
+
+    console.log("===========breakpointArr", breakpointArr);
+
+    return true;
+  };
+
+  const initCarouzelNxt = (
+    slider: Element,
+    options: ISettings
+  ): ICore | null => {
+    if (areValidOptions(options)) {
+      const core = {
+        nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
+        parent: slider as HTMLElement,
+        prevBtn: $(slider, _constants.prevBtnSelector) as HTMLElement,
+        scrollWidth: (slider as HTMLElement).clientWidth + _constants.px,
+        slides: $$(slider, _constants.slideSelector) as HTMLElement[],
+        track: $(slider, _constants.trackSelector) as HTMLElement,
+      };
+
+      applyLayout(core);
+      return core;
+    }
+    return null;
   };
 
   class Root {
@@ -203,19 +256,30 @@ const CarouzelNXT = ((version: string) => {
       return Root.instance;
     }
     public initGlobal() {
-      this.init(true);
+      this.init(true, "");
     }
-    public init(selector: boolean | string) {
-      const allSliders =
-        typeof selector === "boolean" && selector
-          ? $$(document as Document, _constants.gSelector)
-          : $$(document as Document, selector.toString());
+    public init(selector: boolean | string, opts: string) {
+      let receivedOptionsStr: ISettings;
+      const isGlobal = typeof selector === "boolean" && selector;
+      const allSliders = isGlobal
+        ? $$(document as Document, _constants.gSelector)
+        : $$(document as Document, selector.toString());
 
       allSliders.forEach((slider: Element) => {
         const sliderId = generateID(slider);
         slider.setAttribute("id", sliderId);
         if (!allInstances[sliderId]) {
-          allInstances[sliderId] = initCarouzelNxt(slider, {});
+          receivedOptionsStr = isGlobal
+            ? JSON.parse(
+                (
+                  slider.getAttribute(_constants.gSelector.slice(1, -1)) || ""
+                ).replace(/'/g, '"')
+              )
+            : opts;
+          allInstances[sliderId] = initCarouzelNxt(
+            slider,
+            deepMerge(receivedOptionsStr, cDefaults)
+          );
         }
       });
     }
@@ -227,12 +291,14 @@ const CarouzelNXT = ((version: string) => {
   Root.getInstance().initGlobal();
 
   return {
-    version: _constants._v,
-    init: Root.getInstance().init,
+    addSlide: () => {},
+    afterGlobalInit: () => {},
+    beforeGlobalInit: () => {},
     destoy: Root.getInstance().destroy,
     getInstance: () => {},
-    add: () => {},
-    remove: () => {},
+    init: Root.getInstance().init,
+    removeSlide: () => {},
+    version: _constants._v,
   };
 })("1.0.0");
 CarouzelNXT;
