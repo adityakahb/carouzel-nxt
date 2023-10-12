@@ -131,16 +131,28 @@ var CarouzelNXT = (function (version) {
     };
     var areValidOptions = function (options) {
         var _a;
-        console.log("==========options", options);
-        var receivedKeys = Object.keys(options);
-        var defaultKeys = Object.keys(cDefaults);
-        var invalidKeys = receivedKeys.filter(function (key) { return defaultKeys.indexOf(key) === -1; });
-        if (invalidKeys.length) {
+        var receivedArr = Object.keys(options);
+        var defaultArr = Object.keys(cDefaults);
+        var breakpointsArr = [];
+        var duplicates = [];
+        var seen = [];
+        var resultArr = receivedArr.filter(function (key) { return defaultArr.indexOf(key) === -1; });
+        if (resultArr.length) {
             return false;
         }
-        console.log("=======options.breakpoints", options.breakpoints);
-        var breakpointArr = (_a = options.breakpoints) === null || _a === void 0 ? void 0 : _a.map(function (breakpoint) { return breakpoint.minWidth; });
-        console.log("===========breakpointArr", breakpointArr);
+        (_a = options.breakpoints) === null || _a === void 0 ? void 0 : _a.forEach(function (breakpoint) {
+            if (breakpoint.minWidth) {
+                breakpointsArr.push(breakpoint.minWidth);
+            }
+        });
+        breakpointsArr === null || breakpointsArr === void 0 ? void 0 : breakpointsArr.forEach(function (item) {
+            seen.includes(item) && !duplicates.includes(item)
+                ? duplicates.push(item)
+                : seen.push(item);
+        });
+        if (duplicates.length > 0) {
+            return false;
+        }
         return true;
     };
     var initCarouzelNxt = function (slider, options) {
@@ -156,6 +168,7 @@ var CarouzelNXT = (function (version) {
             applyLayout(core);
             return core;
         }
+        // TODO: Log invalid options
         return null;
     };
     var Root = /** @class */ (function () {

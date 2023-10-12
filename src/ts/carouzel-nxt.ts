@@ -204,24 +204,34 @@ const CarouzelNXT = ((version: string) => {
     unwrapAll(tile3);
   };
 
-  const areValidOptions = (options: ISettings) => {
-    console.log("==========options", options);
-    const receivedKeys = Object.keys(options);
-    const defaultKeys = Object.keys(cDefaults);
-    const invalidKeys = receivedKeys.filter(
-      (key) => defaultKeys.indexOf(key) === -1
+  const areValidOptions = (options: ISettings): boolean => {
+    const receivedArr: number[] | string[] = Object.keys(options);
+    const defaultArr: number[] | string[] = Object.keys(cDefaults);
+    const breakpointsArr: number[] = [];
+    const duplicates: number[] = [];
+    const seen: number[] = [];
+    const resultArr: number[] | string[] = receivedArr.filter(
+      (key) => defaultArr.indexOf(key) === -1
     );
-    if (invalidKeys.length) {
+
+    if (resultArr.length) {
       return false;
     }
+    options.breakpoints?.forEach((breakpoint) => {
+      if (breakpoint.minWidth) {
+        breakpointsArr.push(breakpoint.minWidth);
+      }
+    });
 
-    console.log("=======options.breakpoints", options.breakpoints);
+    breakpointsArr?.forEach((item) => {
+      seen.includes(item) && !duplicates.includes(item)
+        ? duplicates.push(item)
+        : seen.push(item);
+    });
 
-    const breakpointArr = options.breakpoints?.map(
-      (breakpoint) => breakpoint.minWidth
-    );
-
-    console.log("===========breakpointArr", breakpointArr);
+    if (duplicates.length > 0) {
+      return false;
+    }
 
     return true;
   };
@@ -243,6 +253,7 @@ const CarouzelNXT = ((version: string) => {
       applyLayout(core);
       return core;
     }
+    // TODO: Log invalid options
     return null;
   };
 
