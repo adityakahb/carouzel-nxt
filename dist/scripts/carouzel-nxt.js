@@ -12,6 +12,7 @@ var CarouzelNXT = (function (version) {
     };
     var allInstances = {};
     var instanceIndex = 0;
+    var windowResizeAny;
     var cDefaults = {
         activeClass: "__carouzelnxt-active",
         afterInitFn: function () { },
@@ -46,6 +47,21 @@ var CarouzelNXT = (function (version) {
         trackUrlHash: false,
         verticalHeight: 500,
         verticalScrollClass: "__carouzelnxt-vertical",
+    };
+    /**
+     * Function to apply the settings to all the instances w.r.t. applicable breakpoint
+     *
+     */
+    var winResizeFn = function () {
+        if (typeof windowResizeAny !== "undefined") {
+            clearTimeout(windowResizeAny);
+        }
+        windowResizeAny = setTimeout(function () {
+            for (var e in allInstances) {
+                console.log("============e", e);
+                // applyLayout(e);
+            }
+        }, 0);
     };
     var $$ = function (parent, str) {
         return Array.prototype.slice.call(parent.querySelectorAll(str) || []);
@@ -197,6 +213,7 @@ var CarouzelNXT = (function (version) {
                         ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts;
                     allInstances[sliderId] = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
+                    window.addEventListener("resize", winResizeFn);
                 }
             });
         };

@@ -73,6 +73,7 @@ const CarouzelNXT = ((version: string) => {
 
   const allInstances: IInstances = {};
   let instanceIndex = 0;
+  let windowResizeAny: any;
 
   const cDefaults: ISettings = {
     activeClass: "__carouzelnxt-active",
@@ -108,6 +109,22 @@ const CarouzelNXT = ((version: string) => {
     trackUrlHash: false,
     verticalHeight: 500,
     verticalScrollClass: "__carouzelnxt-vertical",
+  };
+
+  /**
+   * Function to apply the settings to all the instances w.r.t. applicable breakpoint
+   *
+   */
+  const winResizeFn = () => {
+    if (typeof windowResizeAny !== `undefined`) {
+      clearTimeout(windowResizeAny);
+    }
+    windowResizeAny = setTimeout(() => {
+      for (const e in allInstances) {
+        console.log("============e", e);
+        // applyLayout(e);
+      }
+    }, 0);
   };
 
   const $$ = (parent: Element | Document, str: string) => {
@@ -291,6 +308,7 @@ const CarouzelNXT = ((version: string) => {
             slider,
             deepMerge(receivedOptionsStr, cDefaults)
           );
+          window.addEventListener("resize", winResizeFn);
         }
       });
     }
