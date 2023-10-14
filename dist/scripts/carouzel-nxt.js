@@ -18,12 +18,11 @@ var CarouzelNXT = (function (version) {
         afterInitFn: function () { },
         afterScrollFn: function () { },
         animationSpeed: 5000,
-        appendUrlHash: false,
         autoplay: false,
-        autoplaySpeed: 2000,
         beforeInitFn: function () { },
         beforeScrollFn: function () { },
         breakpoints: [],
+        centerBetween: 0,
         disabledClass: "__carouzelnxt-disabled",
         dotIndexClass: "__carouzelnxt-dot",
         dotTitleClass: "__carouzelnxt-dot-title",
@@ -44,7 +43,9 @@ var CarouzelNXT = (function (version) {
         slideGutter: 0,
         slidesToScroll: 1,
         slidesToShow: 1,
+        startAt: 0,
         trackUrlHash: false,
+        useTitlesAsDots: false,
         verticalHeight: 500,
         verticalScrollClass: "__carouzelnxt-vertical",
     };
@@ -57,10 +58,9 @@ var CarouzelNXT = (function (version) {
             clearTimeout(windowResizeAny);
         }
         windowResizeAny = setTimeout(function () {
-            for (var e in allInstances) {
-                console.log("============e", e);
-                // applyLayout(e);
-            }
+            Object.keys(allInstances).forEach(function (key) {
+                allInstances[key] && applyLayout(allInstances[key]);
+            });
         }, 0);
     };
     var $$ = function (parent, str) {
@@ -132,18 +132,18 @@ var CarouzelNXT = (function (version) {
             slide.style.width = core.parent.clientWidth + _constants.px;
             slide.style.flex = "0 0 ".concat(core.parent.clientWidth / 3 + _constants.px);
         });
-        var tile1 = document.createElement("div");
-        tile1.setAttribute("data-carouzelnxt-tile", "true");
-        var tile2 = document.createElement("div");
-        tile2.setAttribute("data-carouzelnxt-tile", "true");
-        var tile3 = document.createElement("div");
-        tile3.setAttribute("data-carouzelnxt-tile", "true");
-        wrapAll([core.slides[0], core.slides[1]], tile1);
-        wrapAll([core.slides[2], core.slides[3]], tile2);
-        wrapAll([core.slides[4], core.slides[5]], tile3);
-        unwrapAll(tile1);
-        unwrapAll(tile2);
-        unwrapAll(tile3);
+        // const tile1 = document.createElement("div") as HTMLElement;
+        // tile1.setAttribute("data-carouzelnxt-tile", "true");
+        // const tile2 = document.createElement("div") as HTMLElement;
+        // tile2.setAttribute("data-carouzelnxt-tile", "true");
+        // const tile3 = document.createElement("div") as HTMLElement;
+        // tile3.setAttribute("data-carouzelnxt-tile", "true");
+        // wrapAll([core.slides[0], core.slides[1]], tile1);
+        // wrapAll([core.slides[2], core.slides[3]], tile2);
+        // wrapAll([core.slides[4], core.slides[5]], tile3);
+        // unwrapAll(tile1);
+        // unwrapAll(tile2);
+        // unwrapAll(tile3);
     };
     var areValidOptions = function (options) {
         var _a;
@@ -171,6 +171,85 @@ var CarouzelNXT = (function (version) {
         }
         return true;
     };
+    var mergerOptions = function (s) {
+        var o = {
+            _2Scroll: s.slidesToScroll,
+            _2Show: s.slidesToShow,
+            _arrows: s.showArrows,
+            _nav: s.showNavigation,
+            _urlH: s.trackUrlHash,
+            activeCls: s.activeClass,
+            auto: s.autoplay,
+            cntr: s.centerBetween,
+            disableCls: s.disabledClass,
+            dotCls: s.dotIndexClass,
+            dotTcls: s.dotTitleClass,
+            dupCls: s.duplicateClass,
+            editCls: s.editModeClass,
+            gutr: s.slideGutter,
+            hidCls: s.hiddenClass,
+            inf: s.isInfinite,
+            nDirCls: s.nextDirectionClass,
+            pauseHov: s.pauseOnHover,
+            pDirCls: s.previousDirectionClass,
+            rtl: s.isRtl,
+            scbar: s.showScrollbar,
+            startAt: s.startAt,
+            useTitle: s.useTitlesAsDots,
+            ver: s.isVertical,
+            verH: s.verticalHeight,
+            aSFn: s.afterScrollFn,
+            bSFn: s.beforeScrollFn,
+            hScrollCls: s.horizontalScrollClass,
+            vScrollCls: s.verticalScrollClass,
+            idPrefix: s.idPrefix,
+        };
+        if (s.breakpoints && s.breakpoints.length > 0) {
+            var bps = [];
+            var currentIndex_1 = 0;
+            var newBps_1 = [];
+            bps = s.breakpoints.sort(function (a, b) { return a.minWidth - b.minWidth; });
+            newBps_1.push({
+                _2Scroll: s.slidesToScroll,
+                _2Show: s.slidesToShow,
+                _arrows: s.showArrows,
+                _nav: s.showNavigation,
+                cntr: s.centerBetween,
+                gutr: s.slideGutter,
+                minW: 0,
+                verH: s.verticalHeight,
+            });
+            bps.forEach(function (bp, index) {
+                if (bp.minWidth !== 0 || index !== 0) {
+                    newBps_1.push({
+                        _2Scroll: bp.slidesToScroll
+                            ? bp.slidesToScroll
+                            : newBps_1[currentIndex_1]._2Scroll,
+                        _2Show: bp.slidesToShow
+                            ? bp.slidesToShow
+                            : newBps_1[currentIndex_1]._2Show,
+                        _arrows: bp.showArrows
+                            ? bp.showArrows
+                            : newBps_1[currentIndex_1]._arrows,
+                        _nav: bp.showNavigation
+                            ? bp.showNavigation
+                            : newBps_1[currentIndex_1]._nav,
+                        cntr: bp.centerBetween
+                            ? bp.centerBetween
+                            : newBps_1[currentIndex_1].cntr,
+                        gutr: bp.slideGutter ? bp.slideGutter : newBps_1[currentIndex_1].gutr,
+                        minW: bp.minWidth,
+                        verH: bp.verticalHeight
+                            ? bp.verticalHeight
+                            : newBps_1[currentIndex_1].verH,
+                    });
+                    currentIndex_1++;
+                }
+            });
+            o.bps = newBps_1;
+        }
+        return o;
+    };
     var initCarouzelNxt = function (slider, options) {
         if (areValidOptions(options)) {
             var core = {
@@ -180,7 +259,9 @@ var CarouzelNXT = (function (version) {
                 scrollWidth: slider.clientWidth + _constants.px,
                 slides: $$(slider, _constants.slideSelector),
                 track: $(slider, _constants.trackSelector),
+                o: mergerOptions(options),
             };
+            console.log("========core", core);
             applyLayout(core);
             return core;
         }
@@ -207,12 +288,16 @@ var CarouzelNXT = (function (version) {
                 : $$(document, selector.toString());
             allSliders.forEach(function (slider) {
                 var sliderId = generateID(slider);
+                var sliderObj;
                 slider.setAttribute("id", sliderId);
                 if (!allInstances[sliderId]) {
                     receivedOptionsStr = isGlobal
                         ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts;
-                    allInstances[sliderId] = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
+                    sliderObj = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
+                    if (sliderObj) {
+                        allInstances[sliderId] = sliderObj;
+                    }
                     window.addEventListener("resize", winResizeFn);
                 }
             });

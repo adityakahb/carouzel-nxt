@@ -1,7 +1,6 @@
 const CarouzelNXT = ((version: string) => {
   interface IBreakpoint {
     centerBetween: number;
-    enableTouchSwipe: boolean;
     minWidth: number;
     showArrows: boolean;
     showNavigation: boolean;
@@ -16,12 +15,11 @@ const CarouzelNXT = ((version: string) => {
     afterInitFn?: () => void;
     afterScrollFn?: () => void;
     animationSpeed?: number;
-    appendUrlHash?: boolean;
     autoplay?: boolean;
-    autoplaySpeed?: number;
     beforeInitFn?: () => void;
     beforeScrollFn?: () => void;
     breakpoints?: IBreakpoint[];
+    centerBetween: number;
     disabledClass?: string;
     dotIndexClass?: string;
     dotTitleClass?: string;
@@ -42,22 +40,73 @@ const CarouzelNXT = ((version: string) => {
     slideGutter?: number;
     slidesToScroll?: number;
     slidesToShow?: number;
+    startAt?: number;
     trackUrlHash?: boolean;
+    useTitlesAsDots?: false;
     verticalHeight?: number;
     verticalScrollClass?: string;
   }
 
   interface ICore {
     nextBtn: HTMLElement;
+    o: ISettingsShortened;
     parent: HTMLElement;
     prevBtn: HTMLElement;
+    scrollWidth: string;
     slides: HTMLElement[];
     track: HTMLElement;
-    scrollWidth: string;
+  }
+
+  interface IBreakpointShortened {
+    _2Scroll: number;
+    _2Show: number;
+    _arrows: boolean;
+    _nav: boolean;
+    minW: number | string;
+    cntr: number;
+    dots: HTMLElement[];
+    gutr: number;
+    nDups: HTMLElement[];
+    pDups: HTMLElement[];
+    verH: number;
+  }
+
+  interface ISettingsShortened {
+    _2Scroll?: number;
+    _2Show?: number;
+    _arrows?: boolean;
+    _nav?: boolean;
+    _urlH?: boolean;
+    activeCls?: string;
+    aSFn?: () => void;
+    auto?: boolean;
+    bSFn?: () => void;
+    bps?: IBreakpointShortened[];
+    cntr: number;
+    disableCls?: string;
+    dotCls?: string;
+    dotTcls?: string;
+    dupCls?: string;
+    editCls?: string;
+    gutr?: number;
+    hidCls?: string;
+    hScrollCls?: string;
+    idPrefix?: string;
+    inf?: boolean;
+    nDirCls?: string;
+    pauseHov?: boolean;
+    pDirCls?: string;
+    rtl?: boolean;
+    scbar?: boolean;
+    startAt?: number;
+    useTitle?: boolean;
+    ver?: boolean;
+    verH?: number;
+    vScrollCls?: string;
   }
 
   interface IInstances {
-    [key: string]: ICore | null;
+    [key: string]: ICore;
   }
 
   const _constants = {
@@ -80,12 +129,11 @@ const CarouzelNXT = ((version: string) => {
     afterInitFn: () => {},
     afterScrollFn: () => {},
     animationSpeed: 5000,
-    appendUrlHash: false,
     autoplay: false,
-    autoplaySpeed: 2000,
     beforeInitFn: () => {},
     beforeScrollFn: () => {},
     breakpoints: [],
+    centerBetween: 0,
     disabledClass: "__carouzelnxt-disabled",
     dotIndexClass: "__carouzelnxt-dot",
     dotTitleClass: "__carouzelnxt-dot-title",
@@ -106,7 +154,9 @@ const CarouzelNXT = ((version: string) => {
     slideGutter: 0,
     slidesToScroll: 1,
     slidesToShow: 1,
+    startAt: 0,
     trackUrlHash: false,
+    useTitlesAsDots: false,
     verticalHeight: 500,
     verticalScrollClass: "__carouzelnxt-vertical",
   };
@@ -120,10 +170,9 @@ const CarouzelNXT = ((version: string) => {
       clearTimeout(windowResizeAny);
     }
     windowResizeAny = setTimeout(() => {
-      for (const e in allInstances) {
-        console.log("============e", e);
-        // applyLayout(e);
-      }
+      Object.keys(allInstances).forEach((key) => {
+        allInstances[key] && applyLayout(allInstances[key]);
+      });
     }, 0);
   };
 
@@ -206,19 +255,19 @@ const CarouzelNXT = ((version: string) => {
       slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
     });
 
-    const tile1 = document.createElement("div") as HTMLElement;
-    tile1.setAttribute("data-carouzelnxt-tile", "true");
-    const tile2 = document.createElement("div") as HTMLElement;
-    tile2.setAttribute("data-carouzelnxt-tile", "true");
-    const tile3 = document.createElement("div") as HTMLElement;
-    tile3.setAttribute("data-carouzelnxt-tile", "true");
-    wrapAll([core.slides[0], core.slides[1]], tile1);
-    wrapAll([core.slides[2], core.slides[3]], tile2);
-    wrapAll([core.slides[4], core.slides[5]], tile3);
+    // const tile1 = document.createElement("div") as HTMLElement;
+    // tile1.setAttribute("data-carouzelnxt-tile", "true");
+    // const tile2 = document.createElement("div") as HTMLElement;
+    // tile2.setAttribute("data-carouzelnxt-tile", "true");
+    // const tile3 = document.createElement("div") as HTMLElement;
+    // tile3.setAttribute("data-carouzelnxt-tile", "true");
+    // wrapAll([core.slides[0], core.slides[1]], tile1);
+    // wrapAll([core.slides[2], core.slides[3]], tile2);
+    // wrapAll([core.slides[4], core.slides[5]], tile3);
 
-    unwrapAll(tile1);
-    unwrapAll(tile2);
-    unwrapAll(tile3);
+    // unwrapAll(tile1);
+    // unwrapAll(tile2);
+    // unwrapAll(tile3);
   };
 
   const areValidOptions = (options: ISettings): boolean => {
@@ -253,6 +302,88 @@ const CarouzelNXT = ((version: string) => {
     return true;
   };
 
+  const mergerOptions = (s: ISettings): ISettingsShortened => {
+    const o: ISettingsShortened = {
+      _2Scroll: s.slidesToScroll,
+      _2Show: s.slidesToShow,
+      _arrows: s.showArrows,
+      _nav: s.showNavigation,
+      _urlH: s.trackUrlHash,
+      activeCls: s.activeClass,
+      auto: s.autoplay,
+      cntr: s.centerBetween,
+      disableCls: s.disabledClass,
+      dotCls: s.dotIndexClass,
+      dotTcls: s.dotTitleClass,
+      dupCls: s.duplicateClass,
+      editCls: s.editModeClass,
+      gutr: s.slideGutter,
+      hidCls: s.hiddenClass,
+      inf: s.isInfinite,
+      nDirCls: s.nextDirectionClass,
+      pauseHov: s.pauseOnHover,
+      pDirCls: s.previousDirectionClass,
+      rtl: s.isRtl,
+      scbar: s.showScrollbar,
+      startAt: s.startAt,
+      useTitle: s.useTitlesAsDots,
+      ver: s.isVertical,
+      verH: s.verticalHeight,
+      aSFn: s.afterScrollFn,
+      bSFn: s.beforeScrollFn,
+      hScrollCls: s.horizontalScrollClass,
+      vScrollCls: s.verticalScrollClass,
+      idPrefix: s.idPrefix,
+    };
+
+    if (s.breakpoints && s.breakpoints.length > 0) {
+      let bps: IBreakpoint[] = [];
+      let currentIndex = 0;
+      const newBps: IBreakpointShortened[] = [];
+      bps = s.breakpoints.sort((a, b) => a.minWidth - b.minWidth);
+      newBps.push({
+        _2Scroll: s.slidesToScroll,
+        _2Show: s.slidesToShow,
+        _arrows: s.showArrows,
+        _nav: s.showNavigation,
+        cntr: s.centerBetween,
+        gutr: s.slideGutter,
+        minW: 0,
+        verH: s.verticalHeight,
+      } as IBreakpointShortened);
+      bps.forEach((bp, index) => {
+        if (bp.minWidth !== 0 || index !== 0) {
+          newBps.push({
+            _2Scroll: bp.slidesToScroll
+              ? bp.slidesToScroll
+              : newBps[currentIndex]._2Scroll,
+            _2Show: bp.slidesToShow
+              ? bp.slidesToShow
+              : newBps[currentIndex]._2Show,
+            _arrows: bp.showArrows
+              ? bp.showArrows
+              : newBps[currentIndex]._arrows,
+            _nav: bp.showNavigation
+              ? bp.showNavigation
+              : newBps[currentIndex]._nav,
+            cntr: bp.centerBetween
+              ? bp.centerBetween
+              : newBps[currentIndex].cntr,
+            gutr: bp.slideGutter ? bp.slideGutter : newBps[currentIndex].gutr,
+            minW: bp.minWidth,
+            verH: bp.verticalHeight
+              ? bp.verticalHeight
+              : newBps[currentIndex].verH,
+          } as IBreakpointShortened);
+          currentIndex++;
+        }
+      });
+      o.bps = newBps;
+    }
+
+    return o;
+  };
+
   const initCarouzelNxt = (
     slider: Element,
     options: ISettings
@@ -265,7 +396,10 @@ const CarouzelNXT = ((version: string) => {
         scrollWidth: (slider as HTMLElement).clientWidth + _constants.px,
         slides: $$(slider, _constants.slideSelector) as HTMLElement[],
         track: $(slider, _constants.trackSelector) as HTMLElement,
+        o: mergerOptions(options),
       };
+
+      console.log("========core", core);
 
       applyLayout(core);
       return core;
@@ -295,6 +429,7 @@ const CarouzelNXT = ((version: string) => {
 
       allSliders.forEach((slider: Element) => {
         const sliderId = generateID(slider);
+        let sliderObj: ICore | null;
         slider.setAttribute("id", sliderId);
         if (!allInstances[sliderId]) {
           receivedOptionsStr = isGlobal
@@ -304,10 +439,13 @@ const CarouzelNXT = ((version: string) => {
                 ).replace(/'/g, '"')
               )
             : opts;
-          allInstances[sliderId] = initCarouzelNxt(
+          sliderObj = initCarouzelNxt(
             slider,
             deepMerge(receivedOptionsStr, cDefaults)
           );
+          if (sliderObj) {
+            allInstances[sliderId] = sliderObj;
+          }
           window.addEventListener("resize", winResizeFn);
         }
       });
