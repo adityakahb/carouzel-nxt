@@ -4,6 +4,7 @@ const CarouzelNXT = ((version: string) => {
     minWidth: number;
     showArrows: boolean;
     showNavigation: boolean;
+    showScrollbar: boolean;
     slideGutter: number;
     slidesToScroll: number;
     slidesToShow: number;
@@ -62,12 +63,13 @@ const CarouzelNXT = ((version: string) => {
     _2Show: number;
     _arrows: boolean;
     _nav: boolean;
-    minW: number | string;
     cntr: number;
     dots: HTMLElement[];
     gutr: number;
+    minW: number | string;
     nDups: HTMLElement[];
     pDups: HTMLElement[];
+    scbar: boolean;
     verH: number;
   }
 
@@ -121,6 +123,7 @@ const CarouzelNXT = ((version: string) => {
   };
 
   const allInstances: IInstances = {};
+  const win = window;
   let instanceIndex = 0;
   let windowResizeAny: any;
 
@@ -250,11 +253,10 @@ const CarouzelNXT = ((version: string) => {
   };
 
   const applyLayout = (core: ICore) => {
-    core.slides.forEach((slide) => {
-      slide.style.width = core.parent.clientWidth + _constants.px;
-      slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
-    });
-
+    // core.slides.forEach((slide) => {
+    //   slide.style.width = core.parent.clientWidth + _constants.px;
+    //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
+    // });
     // const tile1 = document.createElement("div") as HTMLElement;
     // tile1.setAttribute("data-carouzelnxt-tile", "true");
     // const tile2 = document.createElement("div") as HTMLElement;
@@ -264,7 +266,6 @@ const CarouzelNXT = ((version: string) => {
     // wrapAll([core.slides[0], core.slides[1]], tile1);
     // wrapAll([core.slides[2], core.slides[3]], tile2);
     // wrapAll([core.slides[4], core.slides[5]], tile3);
-
     // unwrapAll(tile1);
     // unwrapAll(tile2);
     // unwrapAll(tile3);
@@ -336,21 +337,25 @@ const CarouzelNXT = ((version: string) => {
       idPrefix: s.idPrefix,
     };
 
+    const defaultItem = {
+      _2Scroll: s.slidesToScroll,
+      _2Show: s.slidesToShow,
+      _arrows: s.showArrows,
+      _nav: s.showNavigation,
+      cntr: s.centerBetween,
+      gutr: s.slideGutter,
+      minW: 0,
+      scbar: s.showScrollbar,
+      verH: s.verticalHeight,
+    };
+
     if (s.breakpoints && s.breakpoints.length > 0) {
-      let bps: IBreakpoint[] = [];
+      const bps = s.breakpoints.sort(
+        (a, b) => (a.minWidth as any) - (b.minWidth as any)
+      );
       let currentIndex = 0;
       const newBps: IBreakpointShortened[] = [];
-      bps = s.breakpoints.sort((a, b) => a.minWidth - b.minWidth);
-      newBps.push({
-        _2Scroll: s.slidesToScroll,
-        _2Show: s.slidesToShow,
-        _arrows: s.showArrows,
-        _nav: s.showNavigation,
-        cntr: s.centerBetween,
-        gutr: s.slideGutter,
-        minW: 0,
-        verH: s.verticalHeight,
-      } as IBreakpointShortened);
+      newBps.push(defaultItem);
       bps.forEach((bp, index) => {
         if (bp.minWidth !== 0 || index !== 0) {
           newBps.push({
@@ -371,6 +376,9 @@ const CarouzelNXT = ((version: string) => {
               : newBps[currentIndex].cntr,
             gutr: bp.slideGutter ? bp.slideGutter : newBps[currentIndex].gutr,
             minW: bp.minWidth,
+            scbar: bp.showScrollbar
+              ? bp.showScrollbar
+              : newBps[currentIndex].scbar,
             verH: bp.verticalHeight
               ? bp.verticalHeight
               : newBps[currentIndex].verH,
@@ -378,7 +386,10 @@ const CarouzelNXT = ((version: string) => {
           currentIndex++;
         }
       });
-      o.bps = newBps;
+      o.bps = newBps.sort((a, b) => (b.minW as any) - (a.minW as any));
+    } else {
+      o.bps = [];
+      o.bps.push(defaultItem as IBreakpointShortened);
     }
 
     return o;

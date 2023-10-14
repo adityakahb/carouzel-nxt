@@ -11,6 +11,7 @@ var CarouzelNXT = (function (version) {
         groupSelector: "[data-carouzelnxt-group]",
     };
     var allInstances = {};
+    var win = window;
     var instanceIndex = 0;
     var windowResizeAny;
     var cDefaults = {
@@ -128,10 +129,10 @@ var CarouzelNXT = (function (version) {
         };
     };
     var applyLayout = function (core) {
-        core.slides.forEach(function (slide) {
-            slide.style.width = core.parent.clientWidth + _constants.px;
-            slide.style.flex = "0 0 ".concat(core.parent.clientWidth / 3 + _constants.px);
-        });
+        // core.slides.forEach((slide) => {
+        //   slide.style.width = core.parent.clientWidth + _constants.px;
+        //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
+        // });
         // const tile1 = document.createElement("div") as HTMLElement;
         // tile1.setAttribute("data-carouzelnxt-tile", "true");
         // const tile2 = document.createElement("div") as HTMLElement;
@@ -204,21 +205,22 @@ var CarouzelNXT = (function (version) {
             vScrollCls: s.verticalScrollClass,
             idPrefix: s.idPrefix,
         };
+        var defaultItem = {
+            _2Scroll: s.slidesToScroll,
+            _2Show: s.slidesToShow,
+            _arrows: s.showArrows,
+            _nav: s.showNavigation,
+            cntr: s.centerBetween,
+            gutr: s.slideGutter,
+            minW: 0,
+            scbar: s.showScrollbar,
+            verH: s.verticalHeight,
+        };
         if (s.breakpoints && s.breakpoints.length > 0) {
-            var bps = [];
+            var bps = s.breakpoints.sort(function (a, b) { return a.minWidth - b.minWidth; });
             var currentIndex_1 = 0;
             var newBps_1 = [];
-            bps = s.breakpoints.sort(function (a, b) { return a.minWidth - b.minWidth; });
-            newBps_1.push({
-                _2Scroll: s.slidesToScroll,
-                _2Show: s.slidesToShow,
-                _arrows: s.showArrows,
-                _nav: s.showNavigation,
-                cntr: s.centerBetween,
-                gutr: s.slideGutter,
-                minW: 0,
-                verH: s.verticalHeight,
-            });
+            newBps_1.push(defaultItem);
             bps.forEach(function (bp, index) {
                 if (bp.minWidth !== 0 || index !== 0) {
                     newBps_1.push({
@@ -239,6 +241,9 @@ var CarouzelNXT = (function (version) {
                             : newBps_1[currentIndex_1].cntr,
                         gutr: bp.slideGutter ? bp.slideGutter : newBps_1[currentIndex_1].gutr,
                         minW: bp.minWidth,
+                        scbar: bp.showScrollbar
+                            ? bp.showScrollbar
+                            : newBps_1[currentIndex_1].scbar,
                         verH: bp.verticalHeight
                             ? bp.verticalHeight
                             : newBps_1[currentIndex_1].verH,
@@ -246,7 +251,11 @@ var CarouzelNXT = (function (version) {
                     currentIndex_1++;
                 }
             });
-            o.bps = newBps_1;
+            o.bps = newBps_1.sort(function (a, b) { return b.minW - a.minW; });
+        }
+        else {
+            o.bps = [];
+            o.bps.push(defaultItem);
         }
         return o;
     };
