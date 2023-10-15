@@ -265,6 +265,8 @@ var CarouzelNXT;
     };
     const initCarouzelNxt = (slider, options) => {
         if (areValidOptions(options)) {
+            console.log("=======options", options);
+            typeof options.beforeInitFn === "function" && options.beforeInitFn();
             const core = {
                 nextBtn: $(slider, _constants.nextBtnSelector),
                 parent: slider,
@@ -275,15 +277,20 @@ var CarouzelNXT;
                 o: mergerOptions(options),
             };
             applyLayout(core);
+            typeof options.afterInitFn === "function" && options.afterInitFn();
             return core;
         }
         // TODO: Log invalid options
         return null;
     };
-    const addSlide = (cores) => { };
-    const removeSlide = (cores) => { };
+    const addSlide = (cores) => {
+        console.log("=========================addslide", cores);
+    };
+    const removeSlide = (cores) => {
+        console.log("=========================removeslide", cores);
+    };
     const destroy = (cores) => {
-        console.log("=========================cores", cores);
+        console.log("=========================destroy", cores);
     };
     class Root {
         static instance;
@@ -298,7 +305,7 @@ var CarouzelNXT;
         }
         init(selector, opts) {
             let receivedOptionsStr;
-            let returnArr = [];
+            const returnArr = [];
             const isGlobal = typeof selector === "boolean" && selector;
             const allSliders = isGlobal
                 ? $$(document, _constants.gSelector)
@@ -311,6 +318,7 @@ var CarouzelNXT;
                     receivedOptionsStr = isGlobal
                         ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts;
+                    console.log("========receivedOptionsStr", receivedOptionsStr);
                     sliderObj = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
                     if (sliderObj) {
                         allInstances[sliderId] = sliderObj;

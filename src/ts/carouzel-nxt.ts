@@ -404,6 +404,8 @@ namespace CarouzelNXT {
     options: ISettings
   ): ICore | null => {
     if (areValidOptions(options)) {
+      console.log("=======options", options);
+      typeof options.beforeInitFn === "function" && options.beforeInitFn();
       const core = {
         nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
         parent: slider as HTMLElement,
@@ -415,16 +417,21 @@ namespace CarouzelNXT {
       };
 
       applyLayout(core);
+      typeof options.afterInitFn === "function" && options.afterInitFn();
       return core;
     }
     // TODO: Log invalid options
     return null;
   };
 
-  const addSlide = (cores: ICore[]) => {};
-  const removeSlide = (cores: ICore[]) => {};
+  const addSlide = (cores: ICore[]) => {
+    console.log("=========================addslide", cores);
+  };
+  const removeSlide = (cores: ICore[]) => {
+    console.log("=========================removeslide", cores);
+  };
   const destroy = (cores: ICore[]) => {
-    console.log("=========================cores", cores);
+    console.log("=========================destroy", cores);
   };
 
   class Root {
@@ -441,7 +448,7 @@ namespace CarouzelNXT {
     }
     public init(selector: boolean | string, opts: string) {
       let receivedOptionsStr: ISettings;
-      let returnArr: ICore[] = [];
+      const returnArr: ICore[] = [];
       const isGlobal = typeof selector === "boolean" && selector;
       const allSliders = isGlobal
         ? $$(document as Document, _constants.gSelector)
@@ -459,6 +466,7 @@ namespace CarouzelNXT {
                 ).replace(/'/g, '"')
               )
             : opts;
+          console.log("========receivedOptionsStr", receivedOptionsStr);
           sliderObj = initCarouzelNxt(
             slider,
             deepMerge(receivedOptionsStr, cDefaults)

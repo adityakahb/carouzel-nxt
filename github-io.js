@@ -1,7 +1,7 @@
 var loadIO = function () {
-  var beforestr = "from githubio file before init";
-  var afterstr = "from githubio file after init";
   if (CarouzelNXT) {
+    var beforestr = "from githubio file before init";
+    var afterstr = "from githubio file after init";
     console.log("========CarouzelNXT", CarouzelNXT);
     // CarouzelNXT.beforeGlobalInit = function (beforestr) {
     //   console.log("==================beforestr", beforestr);
@@ -13,6 +13,12 @@ var loadIO = function () {
       animationSpeed: 500,
       slidesToScroll: 1,
       slidesToShow: 1,
+      beforeInitFn: () => {
+        console.log("============before Init", beforestr);
+      },
+      afterInitFn: () => {
+        console.log("============after Init", afterstr);
+      },
       breakpoints: [
         {
           minWidth: 768,
