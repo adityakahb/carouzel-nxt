@@ -18,7 +18,7 @@ const allPaths = {
   partials: "./partials",
   sass: "src/sass/carouzel-nxt.scss",
   sass_site: "public/index.scss",
-  ts: "src/**/*.ts",
+  ts: "src/**/carouzel-nxt.ts",
 };
 
 gulp.task("minify-css", () => {

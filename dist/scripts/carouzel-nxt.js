@@ -1,7 +1,8 @@
 "use strict";
-var CarouzelNXT = (function (version) {
-    var _constants = {
-        _v: version,
+var CarouzelNXT;
+(function (CarouzelNXT) {
+    const _constants = {
+        _v: "1.0.0",
         px: "px",
         gSelector: "[data-carouzelnxt-auto]",
         trackSelector: "[data-carouzelnxt-track]",
@@ -10,18 +11,18 @@ var CarouzelNXT = (function (version) {
         nextBtnSelector: "[data-carouzelnxt-nextarrow]",
         groupSelector: "[data-carouzelnxt-group]",
     };
-    var allInstances = {};
-    var win = window;
-    var instanceIndex = 0;
-    var windowResizeAny;
-    var cDefaults = {
+    const allInstances = {};
+    const win = window;
+    let instanceIndex = 0;
+    let resizeTimer;
+    const cDefaults = {
         activeClass: "__carouzelnxt-active",
-        afterInitFn: function () { },
-        afterScrollFn: function () { },
+        afterInitFn: () => { },
+        afterScrollFn: () => { },
         animationSpeed: 5000,
         autoplay: false,
-        beforeInitFn: function () { },
-        beforeScrollFn: function () { },
+        beforeInitFn: () => { },
+        beforeScrollFn: () => { },
         breakpoints: [],
         centerBetween: 0,
         disabledClass: "__carouzelnxt-disabled",
@@ -54,35 +55,27 @@ var CarouzelNXT = (function (version) {
      * Function to apply the settings to all the instances w.r.t. applicable breakpoint
      *
      */
-    var winResizeFn = function () {
-        if (typeof windowResizeAny !== "undefined") {
-            clearTimeout(windowResizeAny);
-        }
-        windowResizeAny = setTimeout(function () {
-            Object.keys(allInstances).forEach(function (key) {
+    const winResizeFn = () => {
+        resizeTimer && clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            Object.keys(allInstances).forEach((key) => {
                 allInstances[key] && applyLayout(allInstances[key]);
             });
-        }, 0);
+        }, 100);
     };
-    var $$ = function (parent, str) {
-        return Array.prototype.slice.call(parent.querySelectorAll(str) || []);
-    };
-    var $ = function (parent, str) {
-        return $$(parent, str)[0];
-    };
-    var generateID = function (element) {
-        return (element.getAttribute("id") ||
-            "".concat(cDefaults.idPrefix, "_").concat(new Date().getTime(), "_root_").concat(instanceIndex++));
-    };
-    var wrapAll = function (elements, wrapper) {
+    const $$ = (parent, str) => Array.prototype.slice.call(parent.querySelectorAll(str) || []);
+    const $ = (parent, str) => $$(parent, str)[0];
+    const generateID = (element) => element.getAttribute("id") ||
+        `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
+    const wrapAll = (elements, wrapper) => {
         elements.length &&
             elements[0].parentNode &&
             elements[0].parentNode.insertBefore(wrapper, elements[0]);
-        elements.forEach(function (element) {
+        elements.forEach((element) => {
             wrapper.appendChild(element);
         });
     };
-    var unwrapAll = function (element) {
+    const unwrapAll = (element) => {
         if (element && element.parentNode) {
             // move all children out of the element
             while (element.firstChild) {
@@ -92,11 +85,11 @@ var CarouzelNXT = (function (version) {
             element.remove();
         }
     };
-    var deepMerge = function (target, source) {
+    const deepMerge = (target, source) => {
         if (typeof target !== "object" || typeof source !== "object") {
             return source;
         }
-        for (var key in source) {
+        for (const key in source) {
             if (source[key] instanceof Array) {
                 if (!target[key] || !(target[key] instanceof Array)) {
                     target[key] = [];
@@ -115,8 +108,8 @@ var CarouzelNXT = (function (version) {
         }
         return target;
     };
-    var properties = function (elem) {
-        var rectangle = elem.getBoundingClientRect();
+    const properties = (elem) => {
+        const rectangle = elem.getBoundingClientRect();
         return {
             bottom: rectangle.bottom,
             height: rectangle.height,
@@ -128,7 +121,16 @@ var CarouzelNXT = (function (version) {
             y: rectangle.y,
         };
     };
-    var applyLayout = function (core) {
+    const applyLayout = (core) => {
+        let currentBP = {};
+        // core.o.bps?.every((bp) => {
+        //   if (bp.minW && win.innerWidth >= bp.minW) {
+        //     currentBP = bp;
+        //     return false;
+        //   }
+        //   return true;
+        // });
+        console.log("====================currentBP", currentBP);
         // core.slides.forEach((slide) => {
         //   slide.style.width = core.parent.clientWidth + _constants.px;
         //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
@@ -146,23 +148,22 @@ var CarouzelNXT = (function (version) {
         // unwrapAll(tile2);
         // unwrapAll(tile3);
     };
-    var areValidOptions = function (options) {
-        var _a;
-        var receivedArr = Object.keys(options);
-        var defaultArr = Object.keys(cDefaults);
-        var breakpointsArr = [];
-        var duplicates = [];
-        var seen = [];
-        var resultArr = receivedArr.filter(function (key) { return defaultArr.indexOf(key) === -1; });
+    const areValidOptions = (options) => {
+        const receivedArr = Object.keys(options);
+        const defaultArr = Object.keys(cDefaults);
+        const breakpointsArr = [];
+        const duplicates = [];
+        const seen = [];
+        const resultArr = receivedArr.filter((key) => defaultArr.indexOf(key) === -1);
         if (resultArr.length) {
             return false;
         }
-        (_a = options.breakpoints) === null || _a === void 0 ? void 0 : _a.forEach(function (breakpoint) {
+        options.breakpoints?.forEach((breakpoint) => {
             if (breakpoint.minWidth) {
                 breakpointsArr.push(breakpoint.minWidth);
             }
         });
-        breakpointsArr === null || breakpointsArr === void 0 ? void 0 : breakpointsArr.forEach(function (item) {
+        breakpointsArr?.forEach((item) => {
             seen.includes(item) && !duplicates.includes(item)
                 ? duplicates.push(item)
                 : seen.push(item);
@@ -172,8 +173,8 @@ var CarouzelNXT = (function (version) {
         }
         return true;
     };
-    var mergerOptions = function (s) {
-        var o = {
+    const mergerOptions = (s) => {
+        const o = {
             _2Scroll: s.slidesToScroll,
             _2Show: s.slidesToShow,
             _arrows: s.showArrows,
@@ -205,7 +206,7 @@ var CarouzelNXT = (function (version) {
             vScrollCls: s.verticalScrollClass,
             idPrefix: s.idPrefix,
         };
-        var defaultItem = {
+        const defaultItem = {
             _2Scroll: s.slidesToScroll,
             _2Show: s.slidesToShow,
             _arrows: s.showArrows,
@@ -215,43 +216,46 @@ var CarouzelNXT = (function (version) {
             minW: 0,
             scbar: s.showScrollbar,
             verH: s.verticalHeight,
+            dots: [],
+            nDups: [],
+            pDups: [],
         };
         if (s.breakpoints && s.breakpoints.length > 0) {
-            var bps = s.breakpoints.sort(function (a, b) { return a.minWidth - b.minWidth; });
-            var currentIndex_1 = 0;
-            var newBps_1 = [];
-            newBps_1.push(defaultItem);
-            bps.forEach(function (bp, index) {
+            const bps = s.breakpoints.sort((a, b) => a.minWidth - b.minWidth);
+            let currentIndex = 0;
+            const newBps = [];
+            newBps.push(defaultItem);
+            bps.forEach((bp, index) => {
                 if (bp.minWidth !== 0 || index !== 0) {
-                    newBps_1.push({
+                    newBps.push({
                         _2Scroll: bp.slidesToScroll
                             ? bp.slidesToScroll
-                            : newBps_1[currentIndex_1]._2Scroll,
+                            : newBps[currentIndex]._2Scroll,
                         _2Show: bp.slidesToShow
                             ? bp.slidesToShow
-                            : newBps_1[currentIndex_1]._2Show,
+                            : newBps[currentIndex]._2Show,
                         _arrows: bp.showArrows
                             ? bp.showArrows
-                            : newBps_1[currentIndex_1]._arrows,
+                            : newBps[currentIndex]._arrows,
                         _nav: bp.showNavigation
                             ? bp.showNavigation
-                            : newBps_1[currentIndex_1]._nav,
+                            : newBps[currentIndex]._nav,
                         cntr: bp.centerBetween
                             ? bp.centerBetween
-                            : newBps_1[currentIndex_1].cntr,
-                        gutr: bp.slideGutter ? bp.slideGutter : newBps_1[currentIndex_1].gutr,
+                            : newBps[currentIndex].cntr,
+                        gutr: bp.slideGutter ? bp.slideGutter : newBps[currentIndex].gutr,
                         minW: bp.minWidth,
                         scbar: bp.showScrollbar
                             ? bp.showScrollbar
-                            : newBps_1[currentIndex_1].scbar,
+                            : newBps[currentIndex].scbar,
                         verH: bp.verticalHeight
                             ? bp.verticalHeight
-                            : newBps_1[currentIndex_1].verH,
+                            : newBps[currentIndex].verH,
                     });
-                    currentIndex_1++;
+                    currentIndex++;
                 }
             });
-            o.bps = newBps_1.sort(function (a, b) { return b.minW - a.minW; });
+            o.bps = newBps.sort((a, b) => a.minW - b.minW);
         }
         else {
             o.bps = [];
@@ -259,9 +263,9 @@ var CarouzelNXT = (function (version) {
         }
         return o;
     };
-    var initCarouzelNxt = function (slider, options) {
+    const initCarouzelNxt = (slider, options) => {
         if (areValidOptions(options)) {
-            var core = {
+            const core = {
                 nextBtn: $(slider, _constants.nextBtnSelector),
                 parent: slider,
                 prevBtn: $(slider, _constants.prevBtnSelector),
@@ -270,34 +274,38 @@ var CarouzelNXT = (function (version) {
                 track: $(slider, _constants.trackSelector),
                 o: mergerOptions(options),
             };
-            console.log("========core", core);
             applyLayout(core);
             return core;
         }
         // TODO: Log invalid options
         return null;
     };
-    var Root = /** @class */ (function () {
-        function Root() {
-        }
-        Root.getInstance = function () {
+    const addSlide = (cores) => { };
+    const removeSlide = (cores) => { };
+    const destroy = (cores) => {
+        console.log("=========================cores", cores);
+    };
+    class Root {
+        static instance;
+        static getInstance() {
             if (!Root.instance) {
                 Root.instance = new Root();
             }
             return Root.instance;
-        };
-        Root.prototype.initGlobal = function () {
+        }
+        initGlobal() {
             this.init(true, "");
-        };
-        Root.prototype.init = function (selector, opts) {
-            var receivedOptionsStr;
-            var isGlobal = typeof selector === "boolean" && selector;
-            var allSliders = isGlobal
+        }
+        init(selector, opts) {
+            let receivedOptionsStr;
+            let returnArr = [];
+            const isGlobal = typeof selector === "boolean" && selector;
+            const allSliders = isGlobal
                 ? $$(document, _constants.gSelector)
                 : $$(document, selector.toString());
-            allSliders.forEach(function (slider) {
-                var sliderId = generateID(slider);
-                var sliderObj;
+            allSliders.forEach((slider) => {
+                const sliderId = generateID(slider);
+                let sliderObj;
                 slider.setAttribute("id", sliderId);
                 if (!allInstances[sliderId]) {
                     receivedOptionsStr = isGlobal
@@ -306,28 +314,26 @@ var CarouzelNXT = (function (version) {
                     sliderObj = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
                     if (sliderObj) {
                         allInstances[sliderId] = sliderObj;
+                        returnArr.push(sliderObj);
                     }
-                    window.addEventListener("resize", winResizeFn);
                 }
             });
-        };
-        Root.prototype.destroy = function () {
-            console.log("==========in destroy");
-        };
-        return Root;
-    }());
+            win.addEventListener("resize", winResizeFn, false);
+            return {
+                addSlide: addSlide.bind(this, returnArr),
+                destroy: destroy.bind(this, returnArr),
+                removeSlide: removeSlide.bind(this, returnArr),
+            };
+        }
+    }
     Root.getInstance().initGlobal();
-    return {
-        addSlide: function () { },
-        afterGlobalInit: function () { },
-        beforeGlobalInit: function () { },
-        destoy: Root.getInstance().destroy,
-        getInstance: function () { },
-        init: Root.getInstance().init,
-        removeSlide: function () { },
-        version: _constants._v,
-    };
-})("1.0.0");
-CarouzelNXT;
+    // export const
+    // export const
+    // // export const getInstance = () => {};
+    //
+    // export const
+    CarouzelNXT.version = _constants._v;
+    CarouzelNXT.init = Root.getInstance().init;
+})(CarouzelNXT || (CarouzelNXT = {}));
 
 //# sourceMappingURL=carouzel-nxt.js.map

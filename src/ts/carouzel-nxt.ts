@@ -1,4 +1,4 @@
-const CarouzelNXT = ((version: string) => {
+namespace CarouzelNXT {
   interface IBreakpoint {
     centerBetween: number;
     minWidth: number;
@@ -59,18 +59,18 @@ const CarouzelNXT = ((version: string) => {
   }
 
   interface IBreakpointShortened {
-    _2Scroll: number;
-    _2Show: number;
-    _arrows: boolean;
-    _nav: boolean;
-    cntr: number;
-    dots: HTMLElement[];
-    gutr: number;
-    minW: number | string;
-    nDups: HTMLElement[];
-    pDups: HTMLElement[];
-    scbar: boolean;
-    verH: number;
+    _2Scroll?: number;
+    _2Show?: number;
+    _arrows?: boolean;
+    _nav?: boolean;
+    cntr?: number;
+    dots?: HTMLElement[];
+    gutr?: number;
+    minW?: number;
+    nDups?: HTMLElement[];
+    pDups?: HTMLElement[];
+    scbar?: boolean;
+    verH?: number;
   }
 
   interface ISettingsShortened {
@@ -112,7 +112,7 @@ const CarouzelNXT = ((version: string) => {
   }
 
   const _constants = {
-    _v: version,
+    _v: "1.0.0",
     px: "px",
     gSelector: "[data-carouzelnxt-auto]",
     trackSelector: "[data-carouzelnxt-track]",
@@ -125,7 +125,7 @@ const CarouzelNXT = ((version: string) => {
   const allInstances: IInstances = {};
   const win = window;
   let instanceIndex = 0;
-  let windowResizeAny: any;
+  let resizeTimer: any;
 
   const cDefaults: ISettings = {
     activeClass: "__carouzelnxt-active",
@@ -169,30 +169,22 @@ const CarouzelNXT = ((version: string) => {
    *
    */
   const winResizeFn = () => {
-    if (typeof windowResizeAny !== `undefined`) {
-      clearTimeout(windowResizeAny);
-    }
-    windowResizeAny = setTimeout(() => {
+    resizeTimer && clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
       Object.keys(allInstances).forEach((key) => {
         allInstances[key] && applyLayout(allInstances[key]);
       });
-    }, 0);
+    }, 100);
   };
 
-  const $$ = (parent: Element | Document, str: string) => {
-    return Array.prototype.slice.call(parent.querySelectorAll(str) || []);
-  };
+  const $$ = (parent: Element | Document, str: string) =>
+    Array.prototype.slice.call(parent.querySelectorAll(str) || []);
 
-  const $ = (parent: Element | Document, str: string) => {
-    return $$(parent, str)[0];
-  };
+  const $ = (parent: Element | Document, str: string) => $$(parent, str)[0];
 
-  const generateID = (element: Element): string => {
-    return (
-      element.getAttribute("id") ||
-      `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`
-    );
-  };
+  const generateID = (element: Element): string =>
+    element.getAttribute("id") ||
+    `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
 
   const wrapAll = (elements: HTMLElement[], wrapper: HTMLElement) => {
     elements.length &&
@@ -253,6 +245,15 @@ const CarouzelNXT = ((version: string) => {
   };
 
   const applyLayout = (core: ICore) => {
+    let currentBP: IBreakpointShortened = {};
+    // core.o.bps?.every((bp) => {
+    //   if (bp.minW && win.innerWidth >= bp.minW) {
+    //     currentBP = bp;
+    //     return false;
+    //   }
+    //   return true;
+    // });
+    console.log("====================currentBP", currentBP);
     // core.slides.forEach((slide) => {
     //   slide.style.width = core.parent.clientWidth + _constants.px;
     //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
@@ -337,7 +338,7 @@ const CarouzelNXT = ((version: string) => {
       idPrefix: s.idPrefix,
     };
 
-    const defaultItem = {
+    const defaultItem: IBreakpointShortened = {
       _2Scroll: s.slidesToScroll,
       _2Show: s.slidesToShow,
       _arrows: s.showArrows,
@@ -347,6 +348,9 @@ const CarouzelNXT = ((version: string) => {
       minW: 0,
       scbar: s.showScrollbar,
       verH: s.verticalHeight,
+      dots: [],
+      nDups: [],
+      pDups: [],
     };
 
     if (s.breakpoints && s.breakpoints.length > 0) {
@@ -386,7 +390,7 @@ const CarouzelNXT = ((version: string) => {
           currentIndex++;
         }
       });
-      o.bps = newBps.sort((a, b) => (b.minW as any) - (a.minW as any));
+      o.bps = newBps.sort((a, b) => (a.minW as any) - (b.minW as any));
     } else {
       o.bps = [];
       o.bps.push(defaultItem as IBreakpointShortened);
@@ -410,13 +414,17 @@ const CarouzelNXT = ((version: string) => {
         o: mergerOptions(options),
       };
 
-      console.log("========core", core);
-
       applyLayout(core);
       return core;
     }
     // TODO: Log invalid options
     return null;
+  };
+
+  const addSlide = (cores: ICore[]) => {};
+  const removeSlide = (cores: ICore[]) => {};
+  const destroy = (cores: ICore[]) => {
+    console.log("=========================cores", cores);
   };
 
   class Root {
@@ -433,6 +441,7 @@ const CarouzelNXT = ((version: string) => {
     }
     public init(selector: boolean | string, opts: string) {
       let receivedOptionsStr: ISettings;
+      let returnArr: ICore[] = [];
       const isGlobal = typeof selector === "boolean" && selector;
       const allSliders = isGlobal
         ? $$(document as Document, _constants.gSelector)
@@ -456,27 +465,26 @@ const CarouzelNXT = ((version: string) => {
           );
           if (sliderObj) {
             allInstances[sliderId] = sliderObj;
+            returnArr.push(sliderObj);
           }
-          window.addEventListener("resize", winResizeFn);
         }
       });
-    }
-    public destroy() {
-      console.log("==========in destroy");
+      win.addEventListener("resize", winResizeFn, false);
+      return {
+        addSlide: addSlide.bind(this, returnArr),
+        destroy: destroy.bind(this, returnArr),
+        removeSlide: removeSlide.bind(this, returnArr),
+      };
     }
   }
 
   Root.getInstance().initGlobal();
 
-  return {
-    addSlide: () => {},
-    afterGlobalInit: () => {},
-    beforeGlobalInit: () => {},
-    destoy: Root.getInstance().destroy,
-    getInstance: () => {},
-    init: Root.getInstance().init,
-    removeSlide: () => {},
-    version: _constants._v,
-  };
-})("1.0.0");
-CarouzelNXT;
+  // export const
+  // export const
+  // // export const getInstance = () => {};
+  //
+  // export const
+  export const version = _constants._v;
+  export const init = Root.getInstance().init;
+}

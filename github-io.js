@@ -1,6 +1,15 @@
 var loadIO = function () {
+  var beforestr = "from githubio file before init";
+  var afterstr = "from githubio file after init";
   if (CarouzelNXT) {
-    CarouzelNXT.init(".carouzelnxt", {
+    console.log("========CarouzelNXT", CarouzelNXT);
+    // CarouzelNXT.beforeGlobalInit = function (beforestr) {
+    //   console.log("==================beforestr", beforestr);
+    // };
+    // CarouzelNXT.afterGlobalInit = function (afterstr) {
+    //   console.log("==================afterstr", afterstr);
+    // };
+    var nxt = CarouzelNXT.init(".carouzelnxt", {
       animationSpeed: 500,
       slidesToScroll: 1,
       slidesToShow: 1,
@@ -18,6 +27,9 @@ var loadIO = function () {
         },
       ],
     });
+
+    console.log("============nxt", nxt);
+    nxt.destroy();
   }
 };
 window.addEventListener("load", function () {
