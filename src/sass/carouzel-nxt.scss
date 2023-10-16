@@ -11,7 +11,7 @@ $timeInMilliseconds: 250ms;
     cursor: pointer;
   }
 
-  &.__carouzelnxt-scbhidden {
+  &[data-carouzelnxt-hidescrollbar] {
     [data-carouzelnxt-track] {
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
@@ -20,27 +20,24 @@ $timeInMilliseconds: 250ms;
       }
     }
   }
-  &.__carouzelnxt-horizontal {
-    [data-carouzelnxt-track] {
-      display: flex;
-      overflow-x: scroll;
-      scroll-snap-type: x mandatory;
-    }
-  }
-  &.__carouzelnxt-vertical {
+  &[data-carouzelnxt-vertical] {
     [data-carouzelnxt-track] {
       display: block;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
     }
   }
+  [data-carouzelnxt-track] {
+    display: flex;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+
   .__carouzelnxt-group {
     display: flex;
     scroll-snap-align: center;
     scroll-snap-stop: always;
-  }
-  [data-carouzelnxt-track] {
-    scroll-behavior: smooth;
   }
 
   [data-carouzelnxt-slide] {

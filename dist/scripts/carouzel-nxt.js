@@ -11,12 +11,10 @@ var CarouzelNXT;
         dotIndexCls: "__carouzelnxt-dot",
         dotTitleCls: "__carouzelnxt-dot-title",
         duplicateCls: "__carouzelnxt-duplicate",
-        editCls: "__carouzelnxt-edit-mode",
         groupCls: "__carouzelnxt-group",
         gSelector: "[data-carouzelnxt-auto]",
         hiddenCls: "__carouzelnxt-hidden",
         hideScbCls: "__carouzelnxt-scbhidden",
-        hScrollCls: "__carouzelnxt-horizontal",
         idPrefix: "__carouzelnxt",
         navElSelector: "[data-carouzelnxt-navigation]",
         navWrapSelector: "[data-carouzelnxt-navigationwrapper]",
@@ -26,12 +24,10 @@ var CarouzelNXT;
         pDirectionCls: "__carouzelnxt-to-previous",
         prevBtnSelector: "[data-carouzelnxt-previousarrow]",
         px: "px",
-        rtlCls: "__carouzelnxt-rtl",
         slideSelector: "[data-carouzelnxt-slide]",
         totPageSelector: "[data-carouzelnxt-totalpages]",
         trackSelector: "[data-carouzelnxt-track]",
         useCapture: false,
-        vScrollCls: "__carouzelnxt-vertical",
     };
     var allInstances = {};
     var win = window;
@@ -46,14 +42,10 @@ var CarouzelNXT;
         beforeScrollFn: undefined,
         breakpoints: [],
         centerBetween: 0,
-        editMode: false,
         isInfinite: true,
-        isRtl: false,
-        isVertical: false,
         pauseOnHover: false,
         showArrows: true,
         showNavigation: true,
-        hideScrollbar: false,
         slideGutter: 0,
         slidesToScroll: 1,
         slidesToShow: 1,
@@ -100,11 +92,9 @@ var CarouzelNXT;
     };
     var unwrapAll = function (element) {
         if (element && element.parentNode) {
-            // move all children out of the element
             while (element.firstChild) {
                 element.parentNode.insertBefore(element.firstChild, element);
             }
-            // remove the empty element
             element.remove();
         }
     };
@@ -154,6 +144,9 @@ var CarouzelNXT;
         element.addEventListener(type, listener, _constants.useCapture);
         return eventHandlerObj;
     };
+    var detectScrollEnd = function (event, core) {
+        console.log("=============================", core, event, properties(core.track));
+    };
     var slideChunks = [];
     var group;
     var applyLayout = function (core) {
@@ -161,18 +154,6 @@ var CarouzelNXT;
         if (!currentBP) {
             currentBP = core.o.bps.filter(function (bp) { return bp.minW === 0; })[0];
         }
-        // _2Scroll: s.slidesToScroll,
-        // _2Show: s.slidesToShow,
-        // _arrows: s.showArrows,
-        // _nav: s.showNavigation,
-        // cntr: s.centerBetween,
-        // dots: [],
-        // gutr: s.slideGutter,
-        // minW: 0,
-        // nDups: [],
-        // pDups: [],
-        // _scbar: s.hideScrollbar,
-        // verH: s.verticalHeight,
         console.log("====================currentBP", currentBP);
         currentBP._arrows
             ? removeClass(core.arrowsWrap, _constants.hiddenCls)
@@ -180,17 +161,12 @@ var CarouzelNXT;
         currentBP._nav
             ? removeClass(core.navWrap, _constants.hiddenCls)
             : addClass(core.navWrap, _constants.hiddenCls);
-        currentBP._scbar
-            ? addClass(core.root, _constants.hideScbCls)
-            : removeClass(core.root, _constants.hideScbCls);
         slideChunks = [];
         core.scrlWidth = properties(core.root).width;
         core.slideWidth = core.scrlWidth / currentBP._2Show;
         $$(core.track, ".".concat(_constants.groupCls)).forEach(function (group) {
             unwrapAll(group);
         });
-        //core.track.style.width =
-        // core.slideWidth * core.slides.length + _constants.px;
         core.slides.forEach(function (slide) {
             slide.style.width = core.slideWidth + _constants.px;
         });
@@ -203,22 +179,6 @@ var CarouzelNXT;
             addClass(group, _constants.groupCls);
             wrapAll(chunk, group);
         });
-        // core.slides.forEach((slide) => {
-        //   slide.style.width = core.parent.clientWidth + _constants.px;
-        //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
-        // });
-        // const tile1 = document.createElement("div") as HTMLElement;
-        // tile1.setAttribute("data-carouzelnxt-tile", "true");
-        // const tile2 = document.createElement("div") as HTMLElement;
-        // tile2.setAttribute("data-carouzelnxt-tile", "true");
-        // const tile3 = document.createElement("div") as HTMLElement;
-        // tile3.setAttribute("data-carouzelnxt-tile", "true");
-        // wrapAll([core.slides[0], core.slides[1]], tile1);
-        // wrapAll([core.slides[2], core.slides[3]], tile2);
-        // wrapAll([core.slides[4], core.slides[5]], tile3);
-        // unwrapAll(tile1);
-        // unwrapAll(tile2);
-        // unwrapAll(tile3);
     };
     var areValidOptions = function (options) {
         var _a;
@@ -246,7 +206,7 @@ var CarouzelNXT;
         }
         return true;
     };
-    var mergerOptions = function (s) {
+    var mergeOptions = function (s) {
         var o = {
             _2Scroll: s.slidesToScroll,
             _2Show: s.slidesToShow,
@@ -258,15 +218,11 @@ var CarouzelNXT;
             bps: [],
             bSFn: s.beforeScrollFn,
             cntr: s.centerBetween,
-            edit: s.editMode,
             gutr: s.slideGutter,
             inf: s.isInfinite,
             pauseHov: s.pauseOnHover,
-            rtl: s.isRtl,
-            _scbar: s.hideScrollbar,
             startAt: s.startAt,
             useTitle: s.useTitlesAsDots,
-            ver: s.isVertical,
             verH: s.verticalHeight,
         };
         var defaultItem = {
@@ -280,7 +236,6 @@ var CarouzelNXT;
             minW: 0,
             nDups: [],
             pDups: [],
-            _scbar: s.hideScrollbar,
             verH: s.verticalHeight,
         };
         if (s.breakpoints && s.breakpoints.length > 0) {
@@ -308,9 +263,6 @@ var CarouzelNXT;
                             : newBps_1[currentIndex_1].cntr,
                         gutr: bp.slideGutter ? bp.slideGutter : newBps_1[currentIndex_1].gutr,
                         minW: bp.minWidth,
-                        _scbar: bp.hideScrollbar
-                            ? bp.hideScrollbar
-                            : newBps_1[currentIndex_1]._scbar,
                         verH: bp.verticalHeight
                             ? bp.verticalHeight
                             : newBps_1[currentIndex_1].verH,
@@ -335,7 +287,7 @@ var CarouzelNXT;
                 navEl: $(slider, _constants.navElSelector),
                 navWrap: $(slider, _constants.navWrapSelector),
                 nextBtn: $(slider, _constants.nextBtnSelector),
-                o: mergerOptions(options),
+                o: mergeOptions(options),
                 pageWrap: $(slider, _constants.pageWrapSelector),
                 prevBtn: $(slider, _constants.prevBtnSelector),
                 root: slider,
@@ -344,29 +296,36 @@ var CarouzelNXT;
                 slideWidth: 0,
                 totPage: $(slider, _constants.totPageSelector),
                 track: $(slider, _constants.trackSelector),
+                isKeydown: false,
+                isMousedown: false,
             };
-            console.log("======================options", core_1.o);
-            core_1.o.rtl
-                ? addClass(core_1.root, _constants.rtlCls)
-                : removeClass(core_1.root, _constants.rtlCls);
             core_1.o.auto
                 ? addClass(core_1.root, _constants.autoplayCls)
                 : removeClass(core_1.root, _constants.autoplayCls);
-            core_1.o.edit
-                ? addClass(core_1.root, _constants.editCls)
-                : removeClass(core_1.root, _constants.editCls);
-            if (core_1.o.ver) {
-                addClass(core_1.root, _constants.vScrollCls);
-                removeClass(core_1.root, _constants.hScrollCls);
-            }
-            else {
-                removeClass(core_1.root, _constants.vScrollCls);
-                addClass(core_1.root, _constants.hScrollCls);
-            }
-            applyLayout(core_1);
-            core_1.eH.push(eventHandler(core_1.track, "scroll", function () {
-                console.log("=============================", properties(core_1.track));
+            // core.eH.push(
+            //   eventHandler(core.track, "scroll", (event: Event) => {
+            //     // detectScrollEnd(event as Event, core);
+            //   })
+            // );
+            core_1.root.tabIndex = -1;
+            core_1.eH.push(eventHandler(core_1.track, "mousedown", function () {
+                core_1.isMousedown = true;
             }));
+            core_1.eH.push(eventHandler(core_1.track, "mouseup", function (event) {
+                core_1.isMousedown = false;
+                detectScrollEnd(event, core_1);
+            }));
+            core_1.eH.push(eventHandler(core_1.track, "keydown", function () {
+                core_1.isKeydown = true;
+            }));
+            core_1.eH.push(eventHandler(core_1.track, "keyup", function (event) {
+                core_1.isKeydown = false;
+                detectScrollEnd(event, core_1);
+            }));
+            win.addEventListener("keyup", function (e) {
+                console.log("============", e.target);
+            });
+            applyLayout(core_1);
             typeof options.afterInitFn === "function" && options.afterInitFn();
             return core_1;
         }

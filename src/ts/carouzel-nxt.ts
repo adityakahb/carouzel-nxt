@@ -6,7 +6,6 @@ namespace CarouzelNXT {
     minWidth: number;
     showArrows: boolean;
     showNavigation: boolean;
-    hideScrollbar: boolean;
     slideGutter: number;
     slidesToScroll: number;
     slidesToShow: number;
@@ -22,11 +21,7 @@ namespace CarouzelNXT {
     beforeScrollFn: FunctionType | undefined;
     breakpoints: IBreakpoint[];
     centerBetween: number;
-    editMode: boolean;
-    hideScrollbar: boolean;
     isInfinite: boolean;
-    isRtl: boolean;
-    isVertical: boolean;
     pauseOnHover: boolean;
     showArrows: boolean;
     showNavigation: boolean;
@@ -43,6 +38,8 @@ namespace CarouzelNXT {
     arrowsWrap: HTMLElement;
     curPage: HTMLElement;
     eH: IEventHandler[];
+    isKeydown: boolean;
+    isMousedown: boolean;
     navEl: HTMLElement;
     navWrap: HTMLElement;
     nextBtn: HTMLElement;
@@ -68,7 +65,6 @@ namespace CarouzelNXT {
     minW: number;
     nDups: HTMLElement[];
     pDups: HTMLElement[];
-    _scbar: boolean;
     verH: number;
   }
 
@@ -83,15 +79,11 @@ namespace CarouzelNXT {
     bps: IBreakpointShortened[];
     bSFn: FunctionType | undefined;
     cntr: number;
-    edit: boolean;
     gutr: number;
     inf: boolean;
     pauseHov: boolean;
-    rtl: boolean;
-    _scbar: boolean;
     startAt: number;
     useTitle: boolean;
-    ver: boolean;
     verH: number;
   }
 
@@ -114,12 +106,10 @@ namespace CarouzelNXT {
     dotIndexCls: "__carouzelnxt-dot",
     dotTitleCls: "__carouzelnxt-dot-title",
     duplicateCls: "__carouzelnxt-duplicate",
-    editCls: "__carouzelnxt-edit-mode",
     groupCls: "__carouzelnxt-group",
     gSelector: "[data-carouzelnxt-auto]",
     hiddenCls: "__carouzelnxt-hidden",
     hideScbCls: "__carouzelnxt-scbhidden",
-    hScrollCls: "__carouzelnxt-horizontal",
     idPrefix: "__carouzelnxt",
     navElSelector: "[data-carouzelnxt-navigation]",
     navWrapSelector: "[data-carouzelnxt-navigationwrapper]",
@@ -129,12 +119,10 @@ namespace CarouzelNXT {
     pDirectionCls: "__carouzelnxt-to-previous",
     prevBtnSelector: "[data-carouzelnxt-previousarrow]",
     px: "px",
-    rtlCls: "__carouzelnxt-rtl",
     slideSelector: "[data-carouzelnxt-slide]",
     totPageSelector: "[data-carouzelnxt-totalpages]",
     trackSelector: "[data-carouzelnxt-track]",
     useCapture: false,
-    vScrollCls: "__carouzelnxt-vertical",
   };
 
   const allInstances: IInstances = {};
@@ -151,14 +139,10 @@ namespace CarouzelNXT {
     beforeScrollFn: undefined,
     breakpoints: [],
     centerBetween: 0,
-    editMode: false,
     isInfinite: true,
-    isRtl: false,
-    isVertical: false,
     pauseOnHover: false,
     showArrows: true,
     showNavigation: true,
-    hideScrollbar: false,
     slideGutter: 0,
     slidesToScroll: 1,
     slidesToShow: 1,
@@ -208,11 +192,9 @@ namespace CarouzelNXT {
 
   const unwrapAll = (element: HTMLElement) => {
     if (element && element.parentNode) {
-      // move all children out of the element
       while (element.firstChild) {
         element.parentNode.insertBefore(element.firstChild, element);
       }
-      // remove the empty element
       element.remove();
     }
   };
@@ -270,6 +252,15 @@ namespace CarouzelNXT {
     return eventHandlerObj;
   };
 
+  const detectScrollEnd = (event: Event, core: ICore) => {
+    console.log(
+      "=============================",
+      core,
+      event,
+      properties(core.track)
+    );
+  };
+
   let slideChunks: HTMLElement[][] = [];
   let group: HTMLElement;
 
@@ -278,18 +269,6 @@ namespace CarouzelNXT {
     if (!currentBP) {
       currentBP = core.o.bps.filter((bp) => bp.minW === 0)[0];
     }
-    // _2Scroll: s.slidesToScroll,
-    // _2Show: s.slidesToShow,
-    // _arrows: s.showArrows,
-    // _nav: s.showNavigation,
-    // cntr: s.centerBetween,
-    // dots: [],
-    // gutr: s.slideGutter,
-    // minW: 0,
-    // nDups: [],
-    // pDups: [],
-    // _scbar: s.hideScrollbar,
-    // verH: s.verticalHeight,
     console.log("====================currentBP", currentBP);
     currentBP._arrows
       ? removeClass(core.arrowsWrap, _constants.hiddenCls)
@@ -297,9 +276,6 @@ namespace CarouzelNXT {
     currentBP._nav
       ? removeClass(core.navWrap, _constants.hiddenCls)
       : addClass(core.navWrap, _constants.hiddenCls);
-    currentBP._scbar
-      ? addClass(core.root, _constants.hideScbCls)
-      : removeClass(core.root, _constants.hideScbCls);
 
     slideChunks = [];
     core.scrlWidth = properties(core.root).width;
@@ -309,8 +285,6 @@ namespace CarouzelNXT {
       unwrapAll(group);
     });
 
-    //core.track.style.width =
-    // core.slideWidth * core.slides.length + _constants.px;
     core.slides.forEach((slide) => {
       slide.style.width = core.slideWidth + _constants.px;
     });
@@ -323,23 +297,6 @@ namespace CarouzelNXT {
       addClass(group, _constants.groupCls);
       wrapAll(chunk, group);
     });
-
-    // core.slides.forEach((slide) => {
-    //   slide.style.width = core.parent.clientWidth + _constants.px;
-    //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
-    // });
-    // const tile1 = document.createElement("div") as HTMLElement;
-    // tile1.setAttribute("data-carouzelnxt-tile", "true");
-    // const tile2 = document.createElement("div") as HTMLElement;
-    // tile2.setAttribute("data-carouzelnxt-tile", "true");
-    // const tile3 = document.createElement("div") as HTMLElement;
-    // tile3.setAttribute("data-carouzelnxt-tile", "true");
-    // wrapAll([core.slides[0], core.slides[1]], tile1);
-    // wrapAll([core.slides[2], core.slides[3]], tile2);
-    // wrapAll([core.slides[4], core.slides[5]], tile3);
-    // unwrapAll(tile1);
-    // unwrapAll(tile2);
-    // unwrapAll(tile3);
   };
 
   const areValidOptions = (options: ISettings): boolean => {
@@ -374,7 +331,7 @@ namespace CarouzelNXT {
     return true;
   };
 
-  const mergerOptions = (s: ISettings): ISettingsShortened => {
+  const mergeOptions = (s: ISettings): ISettingsShortened => {
     const o: ISettingsShortened = {
       _2Scroll: s.slidesToScroll,
       _2Show: s.slidesToShow,
@@ -386,15 +343,11 @@ namespace CarouzelNXT {
       bps: [],
       bSFn: s.beforeScrollFn,
       cntr: s.centerBetween,
-      edit: s.editMode,
       gutr: s.slideGutter,
       inf: s.isInfinite,
       pauseHov: s.pauseOnHover,
-      rtl: s.isRtl,
-      _scbar: s.hideScrollbar,
       startAt: s.startAt,
       useTitle: s.useTitlesAsDots,
-      ver: s.isVertical,
       verH: s.verticalHeight,
     };
 
@@ -409,7 +362,6 @@ namespace CarouzelNXT {
       minW: 0,
       nDups: [],
       pDups: [],
-      _scbar: s.hideScrollbar,
       verH: s.verticalHeight,
     };
 
@@ -440,9 +392,6 @@ namespace CarouzelNXT {
               : newBps[currentIndex].cntr,
             gutr: bp.slideGutter ? bp.slideGutter : newBps[currentIndex].gutr,
             minW: bp.minWidth,
-            _scbar: bp.hideScrollbar
-              ? bp.hideScrollbar
-              : newBps[currentIndex]._scbar,
             verH: bp.verticalHeight
               ? bp.verticalHeight
               : newBps[currentIndex].verH,
@@ -471,7 +420,7 @@ namespace CarouzelNXT {
         navEl: $(slider, _constants.navElSelector) as HTMLElement,
         navWrap: $(slider, _constants.navWrapSelector) as HTMLElement,
         nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
-        o: mergerOptions(options),
+        o: mergeOptions(options),
         pageWrap: $(slider, _constants.pageWrapSelector) as HTMLElement,
         prevBtn: $(slider, _constants.prevBtnSelector) as HTMLElement,
         root: slider as HTMLElement,
@@ -480,33 +429,48 @@ namespace CarouzelNXT {
         slideWidth: 0,
         totPage: $(slider, _constants.totPageSelector) as HTMLElement,
         track: $(slider, _constants.trackSelector) as HTMLElement,
+        isKeydown: false,
+        isMousedown: false,
       };
 
-      console.log("======================options", core.o);
-      core.o.rtl
-        ? addClass(core.root, _constants.rtlCls)
-        : removeClass(core.root, _constants.rtlCls);
       core.o.auto
         ? addClass(core.root, _constants.autoplayCls)
         : removeClass(core.root, _constants.autoplayCls);
-      core.o.edit
-        ? addClass(core.root, _constants.editCls)
-        : removeClass(core.root, _constants.editCls);
-      if (core.o.ver) {
-        addClass(core.root, _constants.vScrollCls);
-        removeClass(core.root, _constants.hScrollCls);
-      } else {
-        removeClass(core.root, _constants.vScrollCls);
-        addClass(core.root, _constants.hScrollCls);
-      }
 
-      applyLayout(core);
-
+      // core.eH.push(
+      //   eventHandler(core.track, "scroll", (event: Event) => {
+      //     // detectScrollEnd(event as Event, core);
+      //   })
+      // );
+      core.root.tabIndex = -1;
       core.eH.push(
-        eventHandler(core.track, "scroll", () => {
-          console.log("=============================", properties(core.track));
+        eventHandler(core.track, "mousedown", () => {
+          core.isMousedown = true;
         })
       );
+      core.eH.push(
+        eventHandler(core.track, "mouseup", (event: Event) => {
+          core.isMousedown = false;
+          detectScrollEnd(event as Event, core);
+        })
+      );
+      core.eH.push(
+        eventHandler(core.track, "keydown", () => {
+          core.isKeydown = true;
+        })
+      );
+      core.eH.push(
+        eventHandler(core.track, "keyup", (event: Event) => {
+          core.isKeydown = false;
+          detectScrollEnd(event as Event, core);
+        })
+      );
+
+      win.addEventListener("keyup", (e) => {
+        console.log("============", e.target);
+      });
+
+      applyLayout(core);
 
       typeof options.afterInitFn === "function" && options.afterInitFn();
       return core;
