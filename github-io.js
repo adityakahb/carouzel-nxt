@@ -13,18 +13,11 @@ var loadIO = function () {
       animationSpeed: 500,
       slidesToScroll: 1,
       slidesToShow: 1,
-      beforeInitFn: () => {
-        console.log("============before Init", beforestr);
-      },
-      afterInitFn: () => {
-        console.log("============after Init", afterstr);
-      },
       breakpoints: [
         {
           minWidth: 768,
           slidesToScroll: 2,
           slidesToShow: 2,
-          centerBetween: 1,
         },
         {
           minWidth: 1024,
@@ -34,8 +27,8 @@ var loadIO = function () {
       ],
     });
 
-    console.log("============nxt", nxt);
-    nxt.destroy();
+    // console.log("============nxt", nxt);
+    // nxt.destroy();
   }
 };
 window.addEventListener("load", function () {

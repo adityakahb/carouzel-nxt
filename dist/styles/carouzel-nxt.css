@@ -8,18 +8,32 @@
 [data-carouzelnxt] [type=submit]:not(:disabled) {
   cursor: pointer;
 }
-[data-carouzelnxt] [data-carouzelnxt-track] {
+[data-carouzelnxt].__carouzelnxt-scbhidden [data-carouzelnxt-track] {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+[data-carouzelnxt].__carouzelnxt-scbhidden [data-carouzelnxt-track]::-webkit-scrollbar {
+  display: none;
+}
+[data-carouzelnxt].__carouzelnxt-horizontal [data-carouzelnxt-track] {
   display: flex;
   overflow-x: scroll;
-  scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
-[data-carouzelnxt].__carouzelnxt-active [data-carouzelnxt-track] {
-  display: flex;
+[data-carouzelnxt].__carouzelnxt-vertical [data-carouzelnxt-track] {
+  display: block;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
 }
-[data-carouzelnxt] [data-carouzelnxt-slide] {
+[data-carouzelnxt] .__carouzelnxt-group {
+  display: flex;
   scroll-snap-align: center;
   scroll-snap-stop: always;
+}
+[data-carouzelnxt] [data-carouzelnxt-track] {
+  scroll-behavior: smooth;
+}
+[data-carouzelnxt] [data-carouzelnxt-slide] {
   background-color: lightgray;
   width: 100%;
   height: 200px;

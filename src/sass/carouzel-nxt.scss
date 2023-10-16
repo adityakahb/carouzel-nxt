@@ -11,20 +11,39 @@ $timeInMilliseconds: 250ms;
     cursor: pointer;
   }
 
-  [data-carouzelnxt-track] {
-    display: flex;
-    overflow-x: scroll;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
-  }
-  &.__carouzelnxt-active {
+  &.__carouzelnxt-scbhidden {
     [data-carouzelnxt-track] {
-      display: flex;
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
   }
-  [data-carouzelnxt-slide] {
+  &.__carouzelnxt-horizontal {
+    [data-carouzelnxt-track] {
+      display: flex;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+    }
+  }
+  &.__carouzelnxt-vertical {
+    [data-carouzelnxt-track] {
+      display: block;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+  }
+  .__carouzelnxt-group {
+    display: flex;
     scroll-snap-align: center;
     scroll-snap-stop: always;
+  }
+  [data-carouzelnxt-track] {
+    scroll-behavior: smooth;
+  }
+
+  [data-carouzelnxt-slide] {
     background-color: lightgray;
     width: 100%;
     height: 200px;
