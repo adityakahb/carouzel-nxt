@@ -1,4 +1,6 @@
 namespace CarouzelNXT {
+  type FunctionType = (...args: any[]) => void;
+
   interface IBreakpoint {
     centerBetween: number;
     minWidth: number;
@@ -12,29 +14,19 @@ namespace CarouzelNXT {
   }
 
   interface ISettings {
-    activeClass?: string;
-    afterInitFn?: () => void;
-    afterScrollFn?: () => void;
+    afterInitFn?: FunctionType | undefined;
+    afterScrollFn?: FunctionType | undefined;
     animationSpeed?: number;
     autoplay?: boolean;
-    beforeInitFn?: () => void;
-    beforeScrollFn?: () => void;
+    beforeInitFn?: FunctionType | undefined;
+    beforeScrollFn?: FunctionType | undefined;
     breakpoints?: IBreakpoint[];
     centerBetween: number;
-    disabledClass?: string;
-    dotIndexClass?: string;
-    dotTitleClass?: string;
-    duplicateClass?: string;
     editModeClass?: string;
-    hiddenClass?: string;
-    horizontalScrollClass?: string;
-    idPrefix?: string;
     isInfinite?: boolean;
     isRtl?: boolean;
     isVertical?: boolean;
-    nextDirectionClass?: string;
     pauseOnHover?: boolean;
-    previousDirectionClass?: string;
     showArrows?: boolean;
     showNavigation?: boolean;
     showScrollbar?: boolean;
@@ -45,7 +37,6 @@ namespace CarouzelNXT {
     trackUrlHash?: boolean;
     useTitlesAsDots?: false;
     verticalHeight?: number;
-    verticalScrollClass?: string;
   }
 
   interface ICore {
@@ -79,32 +70,22 @@ namespace CarouzelNXT {
     _arrows?: boolean;
     _nav?: boolean;
     _urlH?: boolean;
-    activeCls?: string;
     aSFn?: () => void;
     auto?: boolean;
-    bSFn?: () => void;
     bps?: IBreakpointShortened[];
+    bSFn?: () => void;
     cntr: number;
-    disableCls?: string;
-    dotCls?: string;
-    dotTcls?: string;
-    dupCls?: string;
     editCls?: string;
     gutr?: number;
-    hidCls?: string;
     hScrollCls?: string;
-    idPrefix?: string;
     inf?: boolean;
-    nDirCls?: string;
     pauseHov?: boolean;
-    pDirCls?: string;
     rtl?: boolean;
     scbar?: boolean;
     startAt?: number;
     useTitle?: boolean;
     ver?: boolean;
     verH?: number;
-    vScrollCls?: string;
   }
 
   interface IInstances {
@@ -113,13 +94,24 @@ namespace CarouzelNXT {
 
   const _constants = {
     _v: "1.0.0",
-    px: "px",
-    gSelector: "[data-carouzelnxt-auto]",
-    trackSelector: "[data-carouzelnxt-track]",
-    slideSelector: "[data-carouzelnxt-slide]",
-    prevBtnSelector: "[data-carouzelnxt-previousarrow]",
-    nextBtnSelector: "[data-carouzelnxt-nextarrow]",
+    activeClass: "__carouzelnxt-active",
+    disabledClass: "__carouzelnxt-disabled",
+    dotIndexClass: "__carouzelnxt-dot",
+    dotTitleClass: "__carouzelnxt-dot-title",
+    duplicateClass: "__carouzelnxt-duplicate",
     groupSelector: "[data-carouzelnxt-group]",
+    gSelector: "[data-carouzelnxt-auto]",
+    hiddenClass: "__carouzelnxt-hidden",
+    horizontalScrollClass: "__carouzelnxt-horizontal",
+    idPrefix: "__carouzelnxt",
+    nextBtnSelector: "[data-carouzelnxt-nextarrow]",
+    nextDirectionClass: "__carouzelnxt-to-next",
+    prevBtnSelector: "[data-carouzelnxt-previousarrow]",
+    previousDirectionClass: "__carouzelnxt-to-previous",
+    px: "px",
+    slideSelector: "[data-carouzelnxt-slide]",
+    trackSelector: "[data-carouzelnxt-track]",
+    verticalScrollClass: "__carouzelnxt-vertical",
   };
 
   const allInstances: IInstances = {};
@@ -128,29 +120,19 @@ namespace CarouzelNXT {
   let resizeTimer: any;
 
   const cDefaults: ISettings = {
-    activeClass: "__carouzelnxt-active",
-    afterInitFn: () => {},
-    afterScrollFn: () => {},
+    afterInitFn: undefined,
+    afterScrollFn: undefined,
     animationSpeed: 5000,
     autoplay: false,
-    beforeInitFn: () => {},
-    beforeScrollFn: () => {},
+    beforeInitFn: undefined,
+    beforeScrollFn: undefined,
     breakpoints: [],
     centerBetween: 0,
-    disabledClass: "__carouzelnxt-disabled",
-    dotIndexClass: "__carouzelnxt-dot",
-    dotTitleClass: "__carouzelnxt-dot-title",
-    duplicateClass: "__carouzelnxt-duplicate",
     editModeClass: "__carouzelnxt-edit-mode",
-    hiddenClass: "__carouzelnxt-hidden",
-    horizontalScrollClass: "__carouzelnxt-horizontal",
-    idPrefix: "__carouzelnxt",
     isInfinite: true,
     isRtl: false,
     isVertical: false,
-    nextDirectionClass: "__carouzelnxt-to-next",
     pauseOnHover: false,
-    previousDirectionClass: "__carouzelnxt-to-previous",
     showArrows: true,
     showNavigation: true,
     showScrollbar: false,
@@ -161,7 +143,6 @@ namespace CarouzelNXT {
     trackUrlHash: false,
     useTitlesAsDots: false,
     verticalHeight: 500,
-    verticalScrollClass: "__carouzelnxt-vertical",
   };
 
   /**
@@ -184,7 +165,7 @@ namespace CarouzelNXT {
 
   const generateID = (element: Element): string =>
     element.getAttribute("id") ||
-    `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
+    `${_constants.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
 
   const wrapAll = (elements: HTMLElement[], wrapper: HTMLElement) => {
     elements.length &&
@@ -207,6 +188,7 @@ namespace CarouzelNXT {
   };
 
   const deepMerge = (target: any, source: any) => {
+    // console.log("============target", target, typeof target);
     if (typeof target !== "object" || typeof source !== "object") {
       return source;
     }
@@ -253,7 +235,7 @@ namespace CarouzelNXT {
     //   }
     //   return true;
     // });
-    console.log("====================currentBP", currentBP);
+    // console.log("====================currentBP", currentBP);
     // core.slides.forEach((slide) => {
     //   slide.style.width = core.parent.clientWidth + _constants.px;
     //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
@@ -311,20 +293,12 @@ namespace CarouzelNXT {
       _arrows: s.showArrows,
       _nav: s.showNavigation,
       _urlH: s.trackUrlHash,
-      activeCls: s.activeClass,
       auto: s.autoplay,
       cntr: s.centerBetween,
-      disableCls: s.disabledClass,
-      dotCls: s.dotIndexClass,
-      dotTcls: s.dotTitleClass,
-      dupCls: s.duplicateClass,
       editCls: s.editModeClass,
       gutr: s.slideGutter,
-      hidCls: s.hiddenClass,
       inf: s.isInfinite,
-      nDirCls: s.nextDirectionClass,
       pauseHov: s.pauseOnHover,
-      pDirCls: s.previousDirectionClass,
       rtl: s.isRtl,
       scbar: s.showScrollbar,
       startAt: s.startAt,
@@ -333,9 +307,6 @@ namespace CarouzelNXT {
       verH: s.verticalHeight,
       aSFn: s.afterScrollFn,
       bSFn: s.beforeScrollFn,
-      hScrollCls: s.horizontalScrollClass,
-      vScrollCls: s.verticalScrollClass,
-      idPrefix: s.idPrefix,
     };
 
     const defaultItem: IBreakpointShortened = {
@@ -404,7 +375,6 @@ namespace CarouzelNXT {
     options: ISettings
   ): ICore | null => {
     if (areValidOptions(options)) {
-      console.log("=======options", options);
       typeof options.beforeInitFn === "function" && options.beforeInitFn();
       const core = {
         nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
@@ -466,10 +436,9 @@ namespace CarouzelNXT {
                 ).replace(/'/g, '"')
               )
             : opts;
-          console.log("========receivedOptionsStr", receivedOptionsStr);
           sliderObj = initCarouzelNxt(
             slider,
-            deepMerge(receivedOptionsStr, cDefaults)
+            deepMerge(cDefaults, receivedOptionsStr)
           );
           if (sliderObj) {
             allInstances[sliderId] = sliderObj;

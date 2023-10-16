@@ -2,7 +2,7 @@ var loadIO = function () {
   if (CarouzelNXT) {
     var beforestr = "from githubio file before init";
     var afterstr = "from githubio file after init";
-    console.log("========CarouzelNXT", CarouzelNXT);
+    // console.log("========CarouzelNXT", CarouzelNXT);
     // CarouzelNXT.beforeGlobalInit = function (beforestr) {
     //   console.log("==================beforestr", beforestr);
     // };

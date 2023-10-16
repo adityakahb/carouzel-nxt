@@ -3,42 +3,43 @@ var CarouzelNXT;
 (function (CarouzelNXT) {
     const _constants = {
         _v: "1.0.0",
-        px: "px",
-        gSelector: "[data-carouzelnxt-auto]",
-        trackSelector: "[data-carouzelnxt-track]",
-        slideSelector: "[data-carouzelnxt-slide]",
-        prevBtnSelector: "[data-carouzelnxt-previousarrow]",
-        nextBtnSelector: "[data-carouzelnxt-nextarrow]",
+        activeClass: "__carouzelnxt-active",
+        disabledClass: "__carouzelnxt-disabled",
+        dotIndexClass: "__carouzelnxt-dot",
+        dotTitleClass: "__carouzelnxt-dot-title",
+        duplicateClass: "__carouzelnxt-duplicate",
         groupSelector: "[data-carouzelnxt-group]",
+        gSelector: "[data-carouzelnxt-auto]",
+        hiddenClass: "__carouzelnxt-hidden",
+        horizontalScrollClass: "__carouzelnxt-horizontal",
+        idPrefix: "__carouzelnxt",
+        nextBtnSelector: "[data-carouzelnxt-nextarrow]",
+        nextDirectionClass: "__carouzelnxt-to-next",
+        prevBtnSelector: "[data-carouzelnxt-previousarrow]",
+        previousDirectionClass: "__carouzelnxt-to-previous",
+        px: "px",
+        slideSelector: "[data-carouzelnxt-slide]",
+        trackSelector: "[data-carouzelnxt-track]",
+        verticalScrollClass: "__carouzelnxt-vertical",
     };
     const allInstances = {};
     const win = window;
     let instanceIndex = 0;
     let resizeTimer;
     const cDefaults = {
-        activeClass: "__carouzelnxt-active",
-        afterInitFn: () => { },
-        afterScrollFn: () => { },
+        afterInitFn: undefined,
+        afterScrollFn: undefined,
         animationSpeed: 5000,
         autoplay: false,
-        beforeInitFn: () => { },
-        beforeScrollFn: () => { },
+        beforeInitFn: undefined,
+        beforeScrollFn: undefined,
         breakpoints: [],
         centerBetween: 0,
-        disabledClass: "__carouzelnxt-disabled",
-        dotIndexClass: "__carouzelnxt-dot",
-        dotTitleClass: "__carouzelnxt-dot-title",
-        duplicateClass: "__carouzelnxt-duplicate",
         editModeClass: "__carouzelnxt-edit-mode",
-        hiddenClass: "__carouzelnxt-hidden",
-        horizontalScrollClass: "__carouzelnxt-horizontal",
-        idPrefix: "__carouzelnxt",
         isInfinite: true,
         isRtl: false,
         isVertical: false,
-        nextDirectionClass: "__carouzelnxt-to-next",
         pauseOnHover: false,
-        previousDirectionClass: "__carouzelnxt-to-previous",
         showArrows: true,
         showNavigation: true,
         showScrollbar: false,
@@ -49,7 +50,6 @@ var CarouzelNXT;
         trackUrlHash: false,
         useTitlesAsDots: false,
         verticalHeight: 500,
-        verticalScrollClass: "__carouzelnxt-vertical",
     };
     /**
      * Function to apply the settings to all the instances w.r.t. applicable breakpoint
@@ -66,7 +66,7 @@ var CarouzelNXT;
     const $$ = (parent, str) => Array.prototype.slice.call(parent.querySelectorAll(str) || []);
     const $ = (parent, str) => $$(parent, str)[0];
     const generateID = (element) => element.getAttribute("id") ||
-        `${cDefaults.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
+        `${_constants.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
     const wrapAll = (elements, wrapper) => {
         elements.length &&
             elements[0].parentNode &&
@@ -86,6 +86,7 @@ var CarouzelNXT;
         }
     };
     const deepMerge = (target, source) => {
+        // console.log("============target", target, typeof target);
         if (typeof target !== "object" || typeof source !== "object") {
             return source;
         }
@@ -130,7 +131,7 @@ var CarouzelNXT;
         //   }
         //   return true;
         // });
-        console.log("====================currentBP", currentBP);
+        // console.log("====================currentBP", currentBP);
         // core.slides.forEach((slide) => {
         //   slide.style.width = core.parent.clientWidth + _constants.px;
         //   slide.style.flex = `0 0 ${core.parent.clientWidth / 3 + _constants.px}`;
@@ -180,20 +181,12 @@ var CarouzelNXT;
             _arrows: s.showArrows,
             _nav: s.showNavigation,
             _urlH: s.trackUrlHash,
-            activeCls: s.activeClass,
             auto: s.autoplay,
             cntr: s.centerBetween,
-            disableCls: s.disabledClass,
-            dotCls: s.dotIndexClass,
-            dotTcls: s.dotTitleClass,
-            dupCls: s.duplicateClass,
             editCls: s.editModeClass,
             gutr: s.slideGutter,
-            hidCls: s.hiddenClass,
             inf: s.isInfinite,
-            nDirCls: s.nextDirectionClass,
             pauseHov: s.pauseOnHover,
-            pDirCls: s.previousDirectionClass,
             rtl: s.isRtl,
             scbar: s.showScrollbar,
             startAt: s.startAt,
@@ -202,9 +195,6 @@ var CarouzelNXT;
             verH: s.verticalHeight,
             aSFn: s.afterScrollFn,
             bSFn: s.beforeScrollFn,
-            hScrollCls: s.horizontalScrollClass,
-            vScrollCls: s.verticalScrollClass,
-            idPrefix: s.idPrefix,
         };
         const defaultItem = {
             _2Scroll: s.slidesToScroll,
@@ -265,7 +255,6 @@ var CarouzelNXT;
     };
     const initCarouzelNxt = (slider, options) => {
         if (areValidOptions(options)) {
-            console.log("=======options", options);
             typeof options.beforeInitFn === "function" && options.beforeInitFn();
             const core = {
                 nextBtn: $(slider, _constants.nextBtnSelector),
@@ -318,8 +307,7 @@ var CarouzelNXT;
                     receivedOptionsStr = isGlobal
                         ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts;
-                    console.log("========receivedOptionsStr", receivedOptionsStr);
-                    sliderObj = initCarouzelNxt(slider, deepMerge(receivedOptionsStr, cDefaults));
+                    sliderObj = initCarouzelNxt(slider, deepMerge(cDefaults, receivedOptionsStr));
                     if (sliderObj) {
                         allInstances[sliderId] = sliderObj;
                         returnArr.push(sliderObj);
