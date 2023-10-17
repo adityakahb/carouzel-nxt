@@ -26,9 +26,9 @@
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
-[data-carouzelnxt] .__carouzelnxt-group {
+[data-carouzelnxt] [data-carouzelnxt-group] {
   display: flex;
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   scroll-snap-stop: always;
 }
 [data-carouzelnxt] [data-carouzelnxt-slide] {
@@ -39,5 +39,12 @@
   align-items: center;
   justify-content: center;
   font-size: 60px;
+}
+[data-carouzelnxt][data-carouzelnxt-rtl] [data-carouzelnxt-track] {
+  flex-direction: row-reverse;
+}
+[data-carouzelnxt][data-carouzelnxt-rtl] [data-carouzelnxt-group] {
+  flex-direction: row-reverse;
+  scroll-snap-align: end;
 }
 /*# sourceMappingURL=carouzel-nxt.css.map */

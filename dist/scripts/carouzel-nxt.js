@@ -11,7 +11,7 @@ var CarouzelNXT;
         dotIndexCls: "__carouzelnxt-dot",
         dotTitleCls: "__carouzelnxt-dot-title",
         duplicateCls: "__carouzelnxt-duplicate",
-        groupCls: "__carouzelnxt-group",
+        groupSelector: "[data-carouzelnxt-group]",
         gSelector: "[data-carouzelnxt-auto]",
         hiddenCls: "__carouzelnxt-hidden",
         hideScbCls: "__carouzelnxt-scbhidden",
@@ -24,6 +24,7 @@ var CarouzelNXT;
         pDirectionCls: "__carouzelnxt-to-previous",
         prevBtnSelector: "[data-carouzelnxt-previousarrow]",
         px: "px",
+        rtlSelector: "[data-carouzelnxt-rtl]",
         slideSelector: "[data-carouzelnxt-slide]",
         totPageSelector: "[data-carouzelnxt-totalpages]",
         trackSelector: "[data-carouzelnxt-track]",
@@ -121,17 +122,18 @@ var CarouzelNXT;
         }
         return target;
     };
-    var properties = function (elem) {
-        var rectangle = elem.getBoundingClientRect();
+    var properties = function (parent, elem) {
+        var parentRectangle = parent.getBoundingClientRect();
+        var childRectangle = elem.getBoundingClientRect();
         return {
-            bottom: rectangle.bottom,
-            height: rectangle.height,
-            left: rectangle.left,
-            right: rectangle.right,
-            top: rectangle.top,
-            width: rectangle.width,
-            x: rectangle.x,
-            y: rectangle.y,
+            bottom: childRectangle.bottom - parentRectangle.bottom,
+            height: childRectangle.height,
+            left: childRectangle.left - parentRectangle.left,
+            right: childRectangle.right - parentRectangle.right,
+            top: childRectangle.top - parentRectangle.top,
+            width: childRectangle.width,
+            x: childRectangle.x - parentRectangle.x,
+            y: childRectangle.y - parentRectangle.y,
         };
     };
     var eventHandler = function (element, type, listener) {
@@ -145,8 +147,17 @@ var CarouzelNXT;
         return eventHandlerObj;
     };
     var detectScrollEnd = function (event, core) {
-        console.log("=============================", core, event, properties(core.track));
+        // console.log(
+        //   "=============================",
+        //   core,
+        //   event,
+        //   properties(core.track)
+        // );
+        if (event instanceof KeyboardEvent) {
+            console.log("================", event.key, properties(core.root, core.track));
+        }
     };
+    var allPositions = [];
     var slideChunks = [];
     var group;
     var applyLayout = function (core) {
@@ -162,23 +173,27 @@ var CarouzelNXT;
             ? removeClass(core.navWrap, _constants.hiddenCls)
             : addClass(core.navWrap, _constants.hiddenCls);
         slideChunks = [];
-        core.scrlWidth = properties(core.root).width;
+        allPositions = [];
+        core.scrlWidth = properties(core.root, core.root).width;
         core.slideWidth = core.scrlWidth / currentBP._2Show;
-        $$(core.track, ".".concat(_constants.groupCls)).forEach(function (group) {
+        $$(core.track, "".concat(_constants.groupSelector)).forEach(function (group) {
             unwrapAll(group);
         });
         core.slides.forEach(function (slide) {
             slide.style.width = core.slideWidth + _constants.px;
         });
-        for (var i = 0; i < core.slides.length; i += currentBP._2Show) {
-            slideChunks.push(core.slides.slice(i, i + currentBP._2Show));
+        for (var i = 0; i < core.slides.length; i += currentBP._2Scroll) {
+            slideChunks.push(core.slides.slice(i, i + currentBP._2Scroll));
         }
         slideChunks.forEach(function (chunk) {
             group = document.createElement("div");
-            group.style.width = core.scrlWidth + _constants.px;
-            addClass(group, _constants.groupCls);
+            group.setAttribute(_constants.groupSelector.slice(1, -1), "true");
             wrapAll(chunk, group);
+            allPositions.push(core.isRtl
+                ? properties(core.root, group).right
+                : properties(core.root, group).left);
         });
+        console.log("=======allPositions", allPositions);
     };
     var areValidOptions = function (options) {
         var _a;
@@ -284,6 +299,9 @@ var CarouzelNXT;
                 arrowsWrap: $(slider, _constants.arrowsWrapSelector),
                 curPage: $(slider, _constants.curPageSelector),
                 eH: [],
+                isKeydown: false,
+                isMousedown: false,
+                isRtl: false,
                 navEl: $(slider, _constants.navElSelector),
                 navWrap: $(slider, _constants.navWrapSelector),
                 nextBtn: $(slider, _constants.nextBtnSelector),
@@ -296,9 +314,11 @@ var CarouzelNXT;
                 slideWidth: 0,
                 totPage: $(slider, _constants.totPageSelector),
                 track: $(slider, _constants.trackSelector),
-                isKeydown: false,
-                isMousedown: false,
             };
+            var rtlAttr = core_1.root.getAttribute(_constants.rtlSelector.slice(1, -1));
+            if (rtlAttr && rtlAttr.length > -1) {
+                core_1.isRtl = true;
+            }
             core_1.o.auto
                 ? addClass(core_1.root, _constants.autoplayCls)
                 : removeClass(core_1.root, _constants.autoplayCls);
@@ -307,7 +327,7 @@ var CarouzelNXT;
             //     // detectScrollEnd(event as Event, core);
             //   })
             // );
-            core_1.root.tabIndex = -1;
+            core_1.track.tabIndex = 0;
             core_1.eH.push(eventHandler(core_1.track, "mousedown", function () {
                 core_1.isMousedown = true;
             }));
@@ -322,9 +342,6 @@ var CarouzelNXT;
                 core_1.isKeydown = false;
                 detectScrollEnd(event, core_1);
             }));
-            win.addEventListener("keyup", function (e) {
-                console.log("============", e.target);
-            });
             applyLayout(core_1);
             typeof options.afterInitFn === "function" && options.afterInitFn();
             return core_1;

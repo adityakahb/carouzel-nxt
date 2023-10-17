@@ -34,9 +34,9 @@ $timeInMilliseconds: 250ms;
     scroll-snap-type: x mandatory;
   }
 
-  .__carouzelnxt-group {
+  [data-carouzelnxt-group] {
     display: flex;
-    scroll-snap-align: center;
+    scroll-snap-align: start;
     scroll-snap-stop: always;
   }
 
@@ -48,5 +48,15 @@ $timeInMilliseconds: 250ms;
     align-items: center;
     justify-content: center;
     font-size: 60px;
+  }
+
+  &[data-carouzelnxt-rtl] {
+    [data-carouzelnxt-track] {
+      flex-direction: row-reverse;
+    }
+    [data-carouzelnxt-group] {
+      flex-direction: row-reverse;
+      scroll-snap-align: end;
+    }
   }
 }
