@@ -6,6 +6,7 @@ namespace CarouzelNXT {
     minWidth: number;
     showArrows: boolean;
     showNavigation: boolean;
+    showScrollbar: boolean;
     slideGutter: number;
     slidesToScroll: number;
     slidesToShow: number;
@@ -21,10 +22,12 @@ namespace CarouzelNXT {
     beforeScrollFn: FunctionType | undefined;
     breakpoints: IBreakpoint[];
     centerBetween: number;
+    effect: string;
     isInfinite: boolean;
     pauseOnHover: boolean;
     showArrows: boolean;
     showNavigation: boolean;
+    showScrollbar: boolean;
     slideGutter: number;
     slidesToScroll: number;
     slidesToShow: number;
@@ -32,27 +35,6 @@ namespace CarouzelNXT {
     trackUrlHash: boolean;
     useTitlesAsDots: false;
     verticalHeight: number;
-  }
-
-  interface ICore {
-    arrowsWrap: HTMLElement;
-    curPage: HTMLElement;
-    eH: IEventHandler[];
-    isKeydown: boolean;
-    isMousedown: boolean;
-    isRtl: boolean;
-    navEl: HTMLElement;
-    navWrap: HTMLElement;
-    nextBtn: HTMLElement;
-    o: ISettingsShortened;
-    pageWrap: HTMLElement;
-    prevBtn: HTMLElement;
-    root: HTMLElement;
-    scrlWidth: number;
-    slides: HTMLElement[];
-    slideWidth: number;
-    totPage: HTMLElement;
-    track: HTMLElement;
   }
 
   interface IBreakpointShortened {
@@ -66,6 +48,7 @@ namespace CarouzelNXT {
     minW: number;
     nDups: HTMLElement[];
     pDups: HTMLElement[];
+    scbar: boolean;
     verH: number;
   }
 
@@ -80,12 +63,37 @@ namespace CarouzelNXT {
     bps: IBreakpointShortened[];
     bSFn: FunctionType | undefined;
     cntr: number;
+    effect: string;
     gutr: number;
     inf: boolean;
     pauseHov: boolean;
+    scbar: boolean;
     startAt: number;
     useTitle: boolean;
     verH: number;
+  }
+
+  interface ICore {
+    arrowsWrap: HTMLElement;
+    pts: number[];
+    curPage: HTMLElement;
+    eH: IEventHandler[];
+    isKeydown: boolean;
+    isMousedown: boolean;
+    isRtl: boolean;
+    isVertical: boolean;
+    navEl: HTMLElement;
+    navWrap: HTMLElement;
+    nextBtn: HTMLElement;
+    o: ISettingsShortened;
+    pageWrap: HTMLElement;
+    prevBtn: HTMLElement;
+    root: HTMLElement;
+    scrlWidth: number;
+    slides: HTMLElement[];
+    slideWidth: number;
+    totPage: HTMLElement;
+    track: HTMLElement;
   }
 
   interface IInstances {
@@ -107,6 +115,10 @@ namespace CarouzelNXT {
     dotIndexCls: "__carouzelnxt-dot",
     dotTitleCls: "__carouzelnxt-dot-title",
     duplicateCls: "__carouzelnxt-duplicate",
+    effects: [
+      { name: "scroll", cls: "__carouzelnxt-scroll" },
+      { name: "fade", cls: "__carouzelnxt-fade" },
+    ],
     groupSelector: "[data-carouzelnxt-group]",
     gSelector: "[data-carouzelnxt-auto]",
     hiddenCls: "__carouzelnxt-hidden",
@@ -125,6 +137,7 @@ namespace CarouzelNXT {
     totPageSelector: "[data-carouzelnxt-totalpages]",
     trackSelector: "[data-carouzelnxt-track]",
     useCapture: false,
+    verSelector: "[data-carouzelnxt-vertical]",
   };
 
   const allInstances: IInstances = {};
@@ -141,10 +154,12 @@ namespace CarouzelNXT {
     beforeScrollFn: undefined,
     breakpoints: [],
     centerBetween: 0,
+    effect: "scroll",
     isInfinite: true,
     pauseOnHover: false,
     showArrows: true,
     showNavigation: true,
+    showScrollbar: true,
     slideGutter: 0,
     slidesToScroll: 1,
     slidesToShow: 1,
@@ -154,10 +169,6 @@ namespace CarouzelNXT {
     verticalHeight: 500,
   };
 
-  /**
-   * Function to apply the settings to all the instances w.r.t. applicable breakpoint
-   *
-   */
   const winResizeFn = () => {
     resizeTimer && clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
@@ -271,7 +282,6 @@ namespace CarouzelNXT {
     }
   };
 
-  let allPositions: Number[] = [];
   let slideChunks: HTMLElement[][] = [];
   let group: HTMLElement;
 
@@ -289,7 +299,7 @@ namespace CarouzelNXT {
       : addClass(core.navWrap, _constants.hiddenCls);
 
     slideChunks = [];
-    allPositions = [];
+    core.pts = [];
     core.scrlWidth = properties(core.root, core.root).width;
     core.slideWidth = core.scrlWidth / currentBP._2Show;
 
@@ -297,9 +307,20 @@ namespace CarouzelNXT {
       unwrapAll(group);
     });
 
-    core.slides.forEach((slide) => {
-      slide.style.width = core.slideWidth + _constants.px;
-    });
+    if (core.isVertical) {
+      core.track.style.height = currentBP.verH + _constants.px;
+      core.slides.forEach((slide) => {
+        // TODO: see if nested if can be removed
+        if (currentBP) {
+          slide.style.height =
+            currentBP.verH / currentBP._2Show + _constants.px;
+        }
+      });
+    } else {
+      core.slides.forEach((slide) => {
+        slide.style.width = core.slideWidth + _constants.px;
+      });
+    }
     for (let i = 0; i < core.slides.length; i += currentBP._2Scroll) {
       slideChunks.push(core.slides.slice(i, i + currentBP._2Scroll));
     }
@@ -307,14 +328,22 @@ namespace CarouzelNXT {
       group = document.createElement("div") as HTMLElement;
       group.setAttribute(_constants.groupSelector.slice(1, -1), "true");
       wrapAll(chunk, group);
-      allPositions.push(
-        core.isRtl
-          ? properties(core.root, group).right
-          : properties(core.root, group).left
-      );
+      if (core.isVertical) {
+        core.pts.push(
+          core.isRtl
+            ? properties(core.root, group).bottom
+            : properties(core.root, group).top
+        );
+      } else {
+        core.pts.push(
+          core.isRtl
+            ? properties(core.root, group).right
+            : properties(core.root, group).left
+        );
+      }
     });
 
-    console.log("=======allPositions", allPositions);
+    console.log("=======core.pts", core.pts);
   };
 
   const areValidOptions = (options: ISettings): boolean => {
@@ -361,13 +390,22 @@ namespace CarouzelNXT {
       bps: [],
       bSFn: s.beforeScrollFn,
       cntr: s.centerBetween,
+      effect: s.effect,
       gutr: s.slideGutter,
       inf: s.isInfinite,
       pauseHov: s.pauseOnHover,
+      scbar: s.showScrollbar,
       startAt: s.startAt,
       useTitle: s.useTitlesAsDots,
       verH: s.verticalHeight,
     };
+
+    const effectObj = _constants.effects.filter(
+      (effect) => effect.name === s.effect
+    )[0];
+
+    // TODO: Effect not found error
+    o.effect = effectObj.cls ? effectObj.cls : _constants.effects[0].cls;
 
     const defaultItem: IBreakpointShortened = {
       _2Scroll: s.slidesToScroll,
@@ -380,6 +418,7 @@ namespace CarouzelNXT {
       minW: 0,
       nDups: [],
       pDups: [],
+      scbar: s.showScrollbar,
       verH: s.verticalHeight,
     };
 
@@ -410,6 +449,9 @@ namespace CarouzelNXT {
               : newBps[currentIndex].cntr,
             gutr: bp.slideGutter ? bp.slideGutter : newBps[currentIndex].gutr,
             minW: bp.minWidth,
+            scbar: bp.showScrollbar
+              ? bp.showScrollbar
+              : newBps[currentIndex].scbar,
             verH: bp.verticalHeight
               ? bp.verticalHeight
               : newBps[currentIndex].verH,
@@ -420,6 +462,13 @@ namespace CarouzelNXT {
       o.bps = newBps.sort((a, b) => (a.minW as any) - (b.minW as any));
     } else {
       o.bps.push(defaultItem as IBreakpointShortened);
+    }
+
+    if (o.effect === _constants.effects[1].cls) {
+      o.scbar = false;
+      o.bps.forEach((bp) => {
+        bp.scbar = false;
+      });
     }
 
     return o;
@@ -433,11 +482,13 @@ namespace CarouzelNXT {
       typeof options.beforeInitFn === "function" && options.beforeInitFn();
       const core: ICore = {
         arrowsWrap: $(slider, _constants.arrowsWrapSelector) as HTMLElement,
+        pts: [],
         curPage: $(slider, _constants.curPageSelector) as HTMLElement,
         eH: [],
         isKeydown: false,
         isMousedown: false,
         isRtl: false,
+        isVertical: false,
         navEl: $(slider, _constants.navElSelector) as HTMLElement,
         navWrap: $(slider, _constants.navWrapSelector) as HTMLElement,
         nextBtn: $(slider, _constants.nextBtnSelector) as HTMLElement,
@@ -452,12 +503,21 @@ namespace CarouzelNXT {
         track: $(slider, _constants.trackSelector) as HTMLElement,
       };
 
+      addClass(core.root, core.o.effect);
+
       const rtlAttr = core.root.getAttribute(
         _constants.rtlSelector.slice(1, -1)
       );
-
-      if (rtlAttr && rtlAttr.length > -1) {
+      if (typeof rtlAttr === "string" && rtlAttr.length > -1) {
         core.isRtl = true;
+      }
+
+      const verAttr = core.root.getAttribute(
+        _constants.verSelector.slice(1, -1)
+      );
+
+      if (typeof verAttr === "string" && verAttr.length > -1) {
+        core.isVertical = true;
       }
 
       core.o.auto

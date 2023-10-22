@@ -11,6 +11,10 @@ var CarouzelNXT;
         dotIndexCls: "__carouzelnxt-dot",
         dotTitleCls: "__carouzelnxt-dot-title",
         duplicateCls: "__carouzelnxt-duplicate",
+        effects: [
+            { name: "scroll", cls: "__carouzelnxt-scroll" },
+            { name: "fade", cls: "__carouzelnxt-fade" },
+        ],
         groupSelector: "[data-carouzelnxt-group]",
         gSelector: "[data-carouzelnxt-auto]",
         hiddenCls: "__carouzelnxt-hidden",
@@ -29,6 +33,7 @@ var CarouzelNXT;
         totPageSelector: "[data-carouzelnxt-totalpages]",
         trackSelector: "[data-carouzelnxt-track]",
         useCapture: false,
+        verSelector: "[data-carouzelnxt-vertical]",
     };
     var allInstances = {};
     var win = window;
@@ -43,10 +48,12 @@ var CarouzelNXT;
         beforeScrollFn: undefined,
         breakpoints: [],
         centerBetween: 0,
+        effect: "scroll",
         isInfinite: true,
         pauseOnHover: false,
         showArrows: true,
         showNavigation: true,
+        showScrollbar: true,
         slideGutter: 0,
         slidesToScroll: 1,
         slidesToShow: 1,
@@ -55,10 +62,6 @@ var CarouzelNXT;
         useTitlesAsDots: false,
         verticalHeight: 500,
     };
-    /**
-     * Function to apply the settings to all the instances w.r.t. applicable breakpoint
-     *
-     */
     var winResizeFn = function () {
         resizeTimer && clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
@@ -157,7 +160,6 @@ var CarouzelNXT;
             console.log("================", event.key, properties(core.root, core.track));
         }
     };
-    var allPositions = [];
     var slideChunks = [];
     var group;
     var applyLayout = function (core) {
@@ -173,15 +175,27 @@ var CarouzelNXT;
             ? removeClass(core.navWrap, _constants.hiddenCls)
             : addClass(core.navWrap, _constants.hiddenCls);
         slideChunks = [];
-        allPositions = [];
+        core.pts = [];
         core.scrlWidth = properties(core.root, core.root).width;
         core.slideWidth = core.scrlWidth / currentBP._2Show;
         $$(core.track, "".concat(_constants.groupSelector)).forEach(function (group) {
             unwrapAll(group);
         });
-        core.slides.forEach(function (slide) {
-            slide.style.width = core.slideWidth + _constants.px;
-        });
+        if (core.isVertical) {
+            core.track.style.height = currentBP.verH + _constants.px;
+            core.slides.forEach(function (slide) {
+                // TODO: see if nested if can be removed
+                if (currentBP) {
+                    slide.style.height =
+                        currentBP.verH / currentBP._2Show + _constants.px;
+                }
+            });
+        }
+        else {
+            core.slides.forEach(function (slide) {
+                slide.style.width = core.slideWidth + _constants.px;
+            });
+        }
         for (var i = 0; i < core.slides.length; i += currentBP._2Scroll) {
             slideChunks.push(core.slides.slice(i, i + currentBP._2Scroll));
         }
@@ -189,11 +203,18 @@ var CarouzelNXT;
             group = document.createElement("div");
             group.setAttribute(_constants.groupSelector.slice(1, -1), "true");
             wrapAll(chunk, group);
-            allPositions.push(core.isRtl
-                ? properties(core.root, group).right
-                : properties(core.root, group).left);
+            if (core.isVertical) {
+                core.pts.push(core.isRtl
+                    ? properties(core.root, group).bottom
+                    : properties(core.root, group).top);
+            }
+            else {
+                core.pts.push(core.isRtl
+                    ? properties(core.root, group).right
+                    : properties(core.root, group).left);
+            }
         });
-        console.log("=======allPositions", allPositions);
+        console.log("=======core.pts", core.pts);
     };
     var areValidOptions = function (options) {
         var _a;
@@ -233,13 +254,18 @@ var CarouzelNXT;
             bps: [],
             bSFn: s.beforeScrollFn,
             cntr: s.centerBetween,
+            effect: s.effect,
             gutr: s.slideGutter,
             inf: s.isInfinite,
             pauseHov: s.pauseOnHover,
+            scbar: s.showScrollbar,
             startAt: s.startAt,
             useTitle: s.useTitlesAsDots,
             verH: s.verticalHeight,
         };
+        var effectObj = _constants.effects.filter(function (effect) { return effect.name === s.effect; })[0];
+        // TODO: Effect not found error
+        o.effect = effectObj.cls ? effectObj.cls : _constants.effects[0].cls;
         var defaultItem = {
             _2Scroll: s.slidesToScroll,
             _2Show: s.slidesToShow,
@@ -251,6 +277,7 @@ var CarouzelNXT;
             minW: 0,
             nDups: [],
             pDups: [],
+            scbar: s.showScrollbar,
             verH: s.verticalHeight,
         };
         if (s.breakpoints && s.breakpoints.length > 0) {
@@ -278,6 +305,9 @@ var CarouzelNXT;
                             : newBps_1[currentIndex_1].cntr,
                         gutr: bp.slideGutter ? bp.slideGutter : newBps_1[currentIndex_1].gutr,
                         minW: bp.minWidth,
+                        scbar: bp.showScrollbar
+                            ? bp.showScrollbar
+                            : newBps_1[currentIndex_1].scbar,
                         verH: bp.verticalHeight
                             ? bp.verticalHeight
                             : newBps_1[currentIndex_1].verH,
@@ -290,6 +320,12 @@ var CarouzelNXT;
         else {
             o.bps.push(defaultItem);
         }
+        if (o.effect === _constants.effects[1].cls) {
+            o.scbar = false;
+            o.bps.forEach(function (bp) {
+                bp.scbar = false;
+            });
+        }
         return o;
     };
     var initCarouzelNxt = function (slider, options) {
@@ -297,11 +333,13 @@ var CarouzelNXT;
             typeof options.beforeInitFn === "function" && options.beforeInitFn();
             var core_1 = {
                 arrowsWrap: $(slider, _constants.arrowsWrapSelector),
+                pts: [],
                 curPage: $(slider, _constants.curPageSelector),
                 eH: [],
                 isKeydown: false,
                 isMousedown: false,
                 isRtl: false,
+                isVertical: false,
                 navEl: $(slider, _constants.navElSelector),
                 navWrap: $(slider, _constants.navWrapSelector),
                 nextBtn: $(slider, _constants.nextBtnSelector),
@@ -315,9 +353,14 @@ var CarouzelNXT;
                 totPage: $(slider, _constants.totPageSelector),
                 track: $(slider, _constants.trackSelector),
             };
+            addClass(core_1.root, core_1.o.effect);
             var rtlAttr = core_1.root.getAttribute(_constants.rtlSelector.slice(1, -1));
-            if (rtlAttr && rtlAttr.length > -1) {
+            if (typeof rtlAttr === "string" && rtlAttr.length > -1) {
                 core_1.isRtl = true;
+            }
+            var verAttr = core_1.root.getAttribute(_constants.verSelector.slice(1, -1));
+            if (typeof verAttr === "string" && verAttr.length > -1) {
+                core_1.isVertical = true;
             }
             core_1.o.auto
                 ? addClass(core_1.root, _constants.autoplayCls)

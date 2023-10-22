@@ -13,6 +13,7 @@ var loadIO = function () {
       animationSpeed: 500,
       slidesToScroll: 1,
       slidesToShow: 1,
+      effect: "scroll",
       breakpoints: [
         {
           minWidth: 768,

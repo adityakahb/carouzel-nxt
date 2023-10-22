@@ -20,24 +20,15 @@ $timeInMilliseconds: 250ms;
       }
     }
   }
-  &[data-carouzelnxt-vertical] {
-    [data-carouzelnxt-track] {
-      display: block;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-    }
-  }
+
   [data-carouzelnxt-track] {
     display: flex;
-    overflow-x: scroll;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
+    overflow: hidden;
   }
 
   [data-carouzelnxt-group] {
     display: flex;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+    flex-direction: row;
   }
 
   [data-carouzelnxt-slide] {
@@ -50,6 +41,24 @@ $timeInMilliseconds: 250ms;
     font-size: 60px;
   }
 
+  &[data-carouzelnxt-vertical] {
+    [data-carouzelnxt-track] {
+      height: 400px;
+      flex-direction: column;
+    }
+    [data-carouzelnxt-group] {
+      flex-direction: column;
+    }
+    &[data-carouzelnxt-rtl] {
+      [data-carouzelnxt-track] {
+        flex-direction: column-reverse;
+      }
+      [data-carouzelnxt-group] {
+        flex-direction: column-reverse;
+      }
+    }
+  }
+
   &[data-carouzelnxt-rtl] {
     [data-carouzelnxt-track] {
       flex-direction: row-reverse;
@@ -57,6 +66,25 @@ $timeInMilliseconds: 250ms;
     [data-carouzelnxt-group] {
       flex-direction: row-reverse;
       scroll-snap-align: end;
+    }
+  }
+
+  &.__carouzelnxt-scroll {
+    [data-carouzelnxt-track] {
+      overflow-x: scroll;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+    }
+    [data-carouzelnxt-group] {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    &[data-carouzelnxt-vertical] {
+      [data-carouzelnxt-track] {
+        overflow-x: hidden;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+      }
     }
   }
 }
