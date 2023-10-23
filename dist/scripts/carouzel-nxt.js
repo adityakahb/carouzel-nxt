@@ -3,10 +3,23 @@ var CarouzelNXT;
 (function (CarouzelNXT) {
     var _constants = {
         _v: "1.0.0",
+        $arrowsWrapper: "[data-carouzelnxt-arrowswrapper]",
+        $currentPage: "[data-carouzelnxt-currentpage]",
+        $global: "[data-carouzelnxt-auto]",
+        $group: "[data-carouzelnxt-group]",
+        $nav: "[data-carouzelnxt-navigation]",
+        $navWrapper: "[data-carouzelnxt-navigationwrapper]",
+        $nextBtn: "[data-carouzelnxt-nextarrow]",
+        $pageWrapper: "[data-carouzelnxt-pageinfo]",
+        $prevBtn: "[data-carouzelnxt-previousarrow]",
+        $rtl: "[data-carouzelnxt-rtl]",
+        $slide: "[data-carouzelnxt-slide]",
+        $totalPages: "[data-carouzelnxt-totalpages]",
+        $track: "[data-carouzelnxt-track]",
+        $trackMask: "[data-carouzelnxt-trackmask]",
+        $vertical: "[data-carouzelnxt-vertical]",
         activeCls: "__carouzelnxt-active",
-        arrowsWrapSelector: "[data-carouzelnxt-arrowswrapper]",
         autoplayCls: "__carouzelnxt-autoplay",
-        curPageSelector: "[data-carouzelnxt-currentpage]",
         disabledCls: "__carouzelnxt-disabled",
         dotIndexCls: "__carouzelnxt-dot",
         dotTitleCls: "__carouzelnxt-dot-title",
@@ -15,30 +28,20 @@ var CarouzelNXT;
             { name: "scroll", cls: "__carouzelnxt-scroll" },
             { name: "fade", cls: "__carouzelnxt-fade" },
         ],
-        groupSelector: "[data-carouzelnxt-group]",
-        gSelector: "[data-carouzelnxt-auto]",
         hiddenCls: "__carouzelnxt-hidden",
         hideScbCls: "__carouzelnxt-scbhidden",
         idPrefix: "__carouzelnxt",
-        navElSelector: "[data-carouzelnxt-navigation]",
-        navWrapSelector: "[data-carouzelnxt-navigationwrapper]",
         nDirectionCls: "__carouzelnxt-to-next",
-        nextBtnSelector: "[data-carouzelnxt-nextarrow]",
-        pageWrapSelector: "[data-carouzelnxt-pageinfo]",
         pDirectionCls: "__carouzelnxt-to-previous",
-        prevBtnSelector: "[data-carouzelnxt-previousarrow]",
         px: "px",
-        rtlSelector: "[data-carouzelnxt-rtl]",
-        slideSelector: "[data-carouzelnxt-slide]",
-        totPageSelector: "[data-carouzelnxt-totalpages]",
-        trackSelector: "[data-carouzelnxt-track]",
         useCapture: false,
-        verSelector: "[data-carouzelnxt-vertical]",
     };
     var allInstances = {};
     var win = window;
+    var group;
     var instanceIndex = 0;
     var resizeTimer;
+    var slideChunks = [];
     var cDefaults = {
         afterInitFn: undefined,
         afterScrollFn: undefined,
@@ -86,6 +89,12 @@ var CarouzelNXT;
         var _a;
         (_a = elem.classList).remove.apply(_a, classNames.split(" "));
     };
+    var addAttribute = function (elem, attribute, value) {
+        elem.setAttribute(attribute, value);
+    };
+    var removeAttribute = function (elem, attribute) {
+        elem.removeAttribute(attribute);
+    };
     var wrapAll = function (elements, wrapper) {
         elements.length &&
             elements[0].parentNode &&
@@ -125,7 +134,7 @@ var CarouzelNXT;
         }
         return target;
     };
-    var properties = function (parent, elem) {
+    var dimensions = function (parent, elem) {
         var parentRectangle = parent.getBoundingClientRect();
         var childRectangle = elem.getBoundingClientRect();
         return {
@@ -154,67 +163,11 @@ var CarouzelNXT;
         //   "=============================",
         //   core,
         //   event,
-        //   properties(core.track)
+        //   dimensions(core.track)
         // );
         if (event instanceof KeyboardEvent) {
-            console.log("================", event.key, properties(core.root, core.track));
+            console.log("================", event.key, dimensions(core.$, core.$track));
         }
-    };
-    var slideChunks = [];
-    var group;
-    var applyLayout = function (core) {
-        var currentBP = core.o.bps.filter(function (bp) { return win.innerWidth >= bp.minW; }).pop();
-        if (!currentBP) {
-            currentBP = core.o.bps.filter(function (bp) { return bp.minW === 0; })[0];
-        }
-        console.log("====================currentBP", currentBP);
-        currentBP._arrows
-            ? removeClass(core.arrowsWrap, _constants.hiddenCls)
-            : addClass(core.arrowsWrap, _constants.hiddenCls);
-        currentBP._nav
-            ? removeClass(core.navWrap, _constants.hiddenCls)
-            : addClass(core.navWrap, _constants.hiddenCls);
-        slideChunks = [];
-        core.pts = [];
-        core.scrlWidth = properties(core.root, core.root).width;
-        core.slideWidth = core.scrlWidth / currentBP._2Show;
-        $$(core.track, "".concat(_constants.groupSelector)).forEach(function (group) {
-            unwrapAll(group);
-        });
-        if (core.isVertical) {
-            core.track.style.height = currentBP.verH + _constants.px;
-            core.slides.forEach(function (slide) {
-                // TODO: see if nested if can be removed
-                if (currentBP) {
-                    slide.style.height =
-                        currentBP.verH / currentBP._2Show + _constants.px;
-                }
-            });
-        }
-        else {
-            core.slides.forEach(function (slide) {
-                slide.style.width = core.slideWidth + _constants.px;
-            });
-        }
-        for (var i = 0; i < core.slides.length; i += currentBP._2Scroll) {
-            slideChunks.push(core.slides.slice(i, i + currentBP._2Scroll));
-        }
-        slideChunks.forEach(function (chunk) {
-            group = document.createElement("div");
-            group.setAttribute(_constants.groupSelector.slice(1, -1), "true");
-            wrapAll(chunk, group);
-            if (core.isVertical) {
-                core.pts.push(core.isRtl
-                    ? properties(core.root, group).bottom
-                    : properties(core.root, group).top);
-            }
-            else {
-                core.pts.push(core.isRtl
-                    ? properties(core.root, group).right
-                    : properties(core.root, group).left);
-            }
-        });
-        console.log("=======core.pts", core.pts);
     };
     var areValidOptions = function (options) {
         var _a;
@@ -328,66 +281,173 @@ var CarouzelNXT;
         }
         return o;
     };
+    var applyLayout = function (core) {
+        var currentBP = core.o.bps.filter(function (bp) { return win.innerWidth >= bp.minW; }).pop();
+        if (!currentBP) {
+            currentBP = core.o.bps.filter(function (bp) { return bp.minW === 0; })[0];
+        }
+        currentBP._arrows
+            ? removeClass(core.$arrowsWrap, _constants.hiddenCls)
+            : addClass(core.$arrowsWrap, _constants.hiddenCls);
+        currentBP._nav
+            ? removeClass(core.$navWrap, _constants.hiddenCls)
+            : addClass(core.$navWrap, _constants.hiddenCls);
+        slideChunks = [];
+        core.pts = [];
+        core.scrlWidth = dimensions(core.$, core.$).width;
+        core.slideWidth = core.scrlWidth / currentBP._2Show;
+        $$(core.$track, "".concat(_constants.$group)).forEach(function (group) {
+            unwrapAll(group);
+        });
+        if (core.isVertical) {
+            core.$track.style.height = currentBP.verH + _constants.px;
+            core.$slides.forEach(function (slide) {
+                // TODO: see if nested if can be removed
+                if (currentBP) {
+                    slide.style.height =
+                        currentBP.verH / currentBP._2Show + _constants.px;
+                }
+            });
+        }
+        else {
+            core.$slides.forEach(function (slide) {
+                slide.style.width = core.slideWidth + _constants.px;
+            });
+        }
+        for (var i = 0; i < core.$slides.length; i += currentBP._2Scroll) {
+            slideChunks.push(core.$slides.slice(i, i + currentBP._2Scroll));
+        }
+        slideChunks.forEach(function (chunk) {
+            group = document.createElement("div");
+            addAttribute(group, _constants.$group.slice(1, -1), "true");
+            wrapAll(chunk, group);
+            core.isVertical
+                ? core.pts.push(core.isRtl
+                    ? dimensions(core.$trackMask, group).bottom
+                    : dimensions(core.$trackMask, group).top)
+                : core.pts.push(core.isRtl
+                    ? dimensions(core.$trackMask, group).right
+                    : dimensions(core.$trackMask, group).left);
+        });
+    };
+    var toggleArrowEvents = function (dir, shouldAdd, core) {
+        if (dir === "next") {
+            if (shouldAdd) {
+                addClass(core.$nextBtn, _constants.disabledCls);
+                addAttribute(core.$nextBtn, "disabled", "disabled");
+            }
+            else {
+                removeClass(core.$nextBtn, _constants.disabledCls);
+                removeAttribute(core.$nextBtn, "disabled");
+            }
+        }
+        if (dir === "prev") {
+            if (shouldAdd) {
+                addClass(core.$prevBtn, _constants.disabledCls);
+                addAttribute(core.$prevBtn, "disabled", "disabled");
+            }
+            else {
+                removeClass(core.$prevBtn, _constants.disabledCls);
+                removeAttribute(core.$prevBtn, "disabled");
+            }
+        }
+    };
+    var initiateStylesAndEvents = function (core) {
+        addClass(core.$, core.o.effect);
+        addClass(core.$arrowsWrap, _constants.hiddenCls);
+        addClass(core.$navWrap, _constants.hiddenCls);
+        addClass(core.$pageWrap, _constants.hiddenCls);
+        toggleArrowEvents("next", true, core);
+        toggleArrowEvents("prev", true, core);
+        // addClass(core.$prevBtn, _constants.disabledCls);
+        // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
+        // core.eH.push(
+        //   eventHandler(core.$nextBtn, "click", (event) => {
+        //     goToNext(event, core);
+        //   })
+        // );
+        // core.eH.push(
+        //   eventHandler(core.$prevBtn, "click", (event) => {
+        //     goToPrev(event, core);
+        //   })
+        // );
+        core.eH.push(eventHandler(core.$track, "mousedown", function () {
+            core.isMousedown = true;
+        }));
+        core.eH.push(eventHandler(core.$track, "mouseup", function (event) {
+            core.isMousedown = false;
+            detectScrollEnd(event, core);
+        }));
+        core.eH.push(eventHandler(core.$track, "keydown", function () {
+            core.isKeydown = true;
+        }));
+        core.eH.push(eventHandler(core.$track, "keyup", function (event) {
+            core.isKeydown = false;
+            detectScrollEnd(event, core);
+        }));
+    };
     var initCarouzelNxt = function (slider, options) {
         if (areValidOptions(options)) {
             typeof options.beforeInitFn === "function" && options.beforeInitFn();
-            var core_1 = {
-                arrowsWrap: $(slider, _constants.arrowsWrapSelector),
-                pts: [],
-                curPage: $(slider, _constants.curPageSelector),
+            var core = {
+                $: slider,
+                $arrowsWrap: $(slider, _constants.$arrowsWrapper),
+                $curPage: $(slider, _constants.$currentPage),
+                $nav: $(slider, _constants.$nav),
+                $navWrap: $(slider, _constants.$navWrapper),
+                $nextBtn: $(slider, _constants.$nextBtn),
+                $pageWrap: $(slider, _constants.$pageWrapper),
+                $prevBtn: $(slider, _constants.$prevBtn),
+                $slides: $$(slider, _constants.$slide),
+                $totPage: $(slider, _constants.$totalPages),
+                $track: $(slider, _constants.$track),
+                $trackMask: $(slider, _constants.$trackMask),
                 eH: [],
+                enableNextBtn: false,
+                enablePrevBtn: false,
                 isKeydown: false,
                 isMousedown: false,
                 isRtl: false,
                 isVertical: false,
-                navEl: $(slider, _constants.navElSelector),
-                navWrap: $(slider, _constants.navWrapSelector),
-                nextBtn: $(slider, _constants.nextBtnSelector),
                 o: mergeOptions(options),
-                pageWrap: $(slider, _constants.pageWrapSelector),
-                prevBtn: $(slider, _constants.prevBtnSelector),
-                root: slider,
+                pts: [],
                 scrlWidth: 0,
-                slides: $$(slider, _constants.slideSelector),
                 slideWidth: 0,
-                totPage: $(slider, _constants.totPageSelector),
-                track: $(slider, _constants.trackSelector),
             };
-            addClass(core_1.root, core_1.o.effect);
-            var rtlAttr = core_1.root.getAttribute(_constants.rtlSelector.slice(1, -1));
+            if (!core.$arrowsWrap ||
+                !core.$curPage ||
+                !core.$nav ||
+                !core.$navWrap ||
+                !core.$nextBtn ||
+                !core.$pageWrap ||
+                !core.$prevBtn ||
+                !core.$totPage ||
+                !core.$track ||
+                !core.$trackMask) {
+                // TODO: Raise invalid structure error
+                return null;
+            }
+            var rtlAttr = core.$.getAttribute(_constants.$rtl.slice(1, -1));
             if (typeof rtlAttr === "string" && rtlAttr.length > -1) {
-                core_1.isRtl = true;
+                core.isRtl = true;
             }
-            var verAttr = core_1.root.getAttribute(_constants.verSelector.slice(1, -1));
+            var verAttr = core.$.getAttribute(_constants.$vertical.slice(1, -1));
             if (typeof verAttr === "string" && verAttr.length > -1) {
-                core_1.isVertical = true;
+                core.isVertical = true;
             }
-            core_1.o.auto
-                ? addClass(core_1.root, _constants.autoplayCls)
-                : removeClass(core_1.root, _constants.autoplayCls);
+            core.o.auto
+                ? addClass(core.$, _constants.autoplayCls)
+                : removeClass(core.$, _constants.autoplayCls);
             // core.eH.push(
             //   eventHandler(core.track, "scroll", (event: Event) => {
             //     // detectScrollEnd(event as Event, core);
             //   })
             // );
-            core_1.track.tabIndex = 0;
-            core_1.eH.push(eventHandler(core_1.track, "mousedown", function () {
-                core_1.isMousedown = true;
-            }));
-            core_1.eH.push(eventHandler(core_1.track, "mouseup", function (event) {
-                core_1.isMousedown = false;
-                detectScrollEnd(event, core_1);
-            }));
-            core_1.eH.push(eventHandler(core_1.track, "keydown", function () {
-                core_1.isKeydown = true;
-            }));
-            core_1.eH.push(eventHandler(core_1.track, "keyup", function (event) {
-                core_1.isKeydown = false;
-                detectScrollEnd(event, core_1);
-            }));
-            applyLayout(core_1);
+            core.$track.tabIndex = 0;
+            initiateStylesAndEvents(core);
+            applyLayout(core);
             typeof options.afterInitFn === "function" && options.afterInitFn();
-            return core_1;
+            return core;
         }
         // TODO: Log invalid options
         return null;
@@ -418,15 +478,15 @@ var CarouzelNXT;
             var returnArr = [];
             var isGlobal = typeof selector === "boolean" && selector;
             var allSliders = isGlobal
-                ? $$(document, _constants.gSelector)
+                ? $$(document, _constants.$global)
                 : $$(document, selector.toString());
             allSliders.forEach(function (slider) {
                 var sliderId = generateID(slider);
                 var sliderObj;
-                slider.setAttribute("id", sliderId);
+                addAttribute(slider, "id", sliderId);
                 if (!allInstances[sliderId]) {
                     receivedOptionsStr = isGlobal
-                        ? JSON.parse((slider.getAttribute(_constants.gSelector.slice(1, -1)) || "").replace(/'/g, '"'))
+                        ? JSON.parse((slider.getAttribute(_constants.$global.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts
                             ? opts
                             : {};

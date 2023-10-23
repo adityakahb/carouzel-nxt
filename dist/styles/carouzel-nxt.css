@@ -15,23 +15,6 @@
 [data-carouzelnxt][data-carouzelnxt-hidescrollbar] [data-carouzelnxt-track]::-webkit-scrollbar {
   display: none;
 }
-[data-carouzelnxt] [data-carouzelnxt-track] {
-  display: flex;
-  overflow: hidden;
-}
-[data-carouzelnxt] [data-carouzelnxt-group] {
-  display: flex;
-  flex-direction: row;
-}
-[data-carouzelnxt] [data-carouzelnxt-slide] {
-  background-color: lightgray;
-  width: 100%;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 60px;
-}
 [data-carouzelnxt][data-carouzelnxt-vertical] [data-carouzelnxt-track] {
   height: 400px;
   flex-direction: column;
@@ -65,5 +48,62 @@
   overflow-x: hidden;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
+}
+[data-carouzelnxt] [data-carouzelnxt-track] {
+  display: flex;
+  overflow: hidden;
+}
+[data-carouzelnxt] [data-carouzelnxt-group] {
+  display: flex;
+  flex-direction: row;
+}
+[data-carouzelnxt] [data-carouzelnxt-slide] {
+  background-color: #bbb;
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+}
+[data-carouzelnxt] [data-carouzelnxt-trackwrapper] {
+  position: relative;
+}
+[data-carouzelnxt] [data-carouzelnxt-previousarrow],
+[data-carouzelnxt] [data-carouzelnxt-nextarrow] {
+  align-items: center;
+  background-color: #fff;
+  border-radius: 100%;
+  border: 1px solid #000;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  margin: -20px 0 0 0;
+  opacity: 1;
+  padding: 5px;
+  position: absolute;
+  top: 50%;
+  width: 40px;
+  z-index: 1;
+}
+[data-carouzelnxt] [data-carouzelnxt-previousarrow].__carouzelnxt-disabled,
+[data-carouzelnxt] [data-carouzelnxt-nextarrow].__carouzelnxt-disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+[data-carouzelnxt] [data-carouzelnxt-previousarrow] svg,
+[data-carouzelnxt] [data-carouzelnxt-nextarrow] svg {
+  width: 100%;
+}
+[data-carouzelnxt] [data-carouzelnxt-previousarrow] {
+  left: 10px;
+  right: auto;
+}
+[data-carouzelnxt] [data-carouzelnxt-nextarrow] {
+  left: auto;
+  right: 10px;
+}
+[data-carouzelnxt] .__carouzelnxt-hidden {
+  display: none;
 }
 /*# sourceMappingURL=carouzel-nxt.css.map */
