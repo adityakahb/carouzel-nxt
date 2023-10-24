@@ -1,1 +1,1 @@
-{"version":3,"sources":["carouzel-nxt.ts"],"names":[],"mappings":"AAAA,kBAAU,WAAW,CAAC;IA8rBb,MAAM,OAAO,QAAgB,CAAC;IAC9B,MAAM,IAAI,aAjDO,OAAO,GAAG,MAAM,QAAQ,MAAM,GAAG,SAAS;;;;KAiDvB,CAAC;CAC7C","file":"carouzel-nxt.d.ts","sourceRoot":"dist/scripts"}
+{"version":3,"sources":["carouzel-nxt.ts"],"names":[],"mappings":"AAAA,kBAAU,WAAW,CAAC;IAwrBb,MAAM,OAAO,UAAM,CAAC;IACpB,MAAM,IAAI,aAlDO,OAAO,GAAG,MAAM,QAAQ,MAAM,GAAG,SAAS;;;;KAkDvB,CAAC;CAC7C","file":"carouzel-nxt.d.ts","sourceRoot":"dist/scripts"}

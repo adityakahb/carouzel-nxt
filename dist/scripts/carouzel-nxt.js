@@ -1,41 +1,39 @@
 "use strict";
 var CarouzelNXT;
 (function (CarouzelNXT) {
-    var _constants = {
-        _v: "1.0.0",
-        $arrowsWrapper: "[data-carouzelnxt-arrowswrapper]",
-        $currentPage: "[data-carouzelnxt-currentpage]",
-        $global: "[data-carouzelnxt-auto]",
-        $group: "[data-carouzelnxt-group]",
-        $nav: "[data-carouzelnxt-navigation]",
-        $navWrapper: "[data-carouzelnxt-navigationwrapper]",
-        $nextBtn: "[data-carouzelnxt-nextarrow]",
-        $pageWrapper: "[data-carouzelnxt-pageinfo]",
-        $prevBtn: "[data-carouzelnxt-previousarrow]",
-        $rtl: "[data-carouzelnxt-rtl]",
-        $slide: "[data-carouzelnxt-slide]",
-        $totalPages: "[data-carouzelnxt-totalpages]",
-        $track: "[data-carouzelnxt-track]",
-        $trackMask: "[data-carouzelnxt-trackmask]",
-        $vertical: "[data-carouzelnxt-vertical]",
-        activeCls: "__carouzelnxt-active",
-        autoplayCls: "__carouzelnxt-autoplay",
-        disabledCls: "__carouzelnxt-disabled",
-        dotIndexCls: "__carouzelnxt-dot",
-        dotTitleCls: "__carouzelnxt-dot-title",
-        duplicateCls: "__carouzelnxt-duplicate",
-        effects: [
-            { name: "scroll", cls: "__carouzelnxt-scroll" },
-            { name: "fade", cls: "__carouzelnxt-fade" },
-        ],
-        hiddenCls: "__carouzelnxt-hidden",
-        hideScbCls: "__carouzelnxt-scbhidden",
-        idPrefix: "__carouzelnxt",
-        nDirectionCls: "__carouzelnxt-to-next",
-        pDirectionCls: "__carouzelnxt-to-previous",
-        px: "px",
-        useCapture: false,
-    };
+    var __v = "1.0.0";
+    var _$arrowsWrapper = "[data-carouzelnxt-arrowswrapper]";
+    var _$currentPage = "[data-carouzelnxt-currentpage]";
+    var _$global = "[data-carouzelnxt-auto]";
+    var _$group = "[data-carouzelnxt-group]";
+    var _$nav = "[data-carouzelnxt-navigation]";
+    var _$navWrapper = "[data-carouzelnxt-navigationwrapper]";
+    var _$nextBtn = "[data-carouzelnxt-nextarrow]";
+    var _$pageWrapper = "[data-carouzelnxt-pageinfo]";
+    var _$prevBtn = "[data-carouzelnxt-previousarrow]";
+    var _$rtl = "[data-carouzelnxt-rtl]";
+    var _$slide = "[data-carouzelnxt-slide]";
+    var _$totalPages = "[data-carouzelnxt-totalpages]";
+    var _$track = "[data-carouzelnxt-track]";
+    var _$trackMask = "[data-carouzelnxt-trackmask]";
+    var _$vertical = "[data-carouzelnxt-vertical]";
+    var _activeCls = "__carouzelnxt-active";
+    var _autoplayCls = "__carouzelnxt-autoplay";
+    var _disabledCls = "__carouzelnxt-disabled";
+    var _dotIndexCls = "__carouzelnxt-dot";
+    var _dotTitleCls = "__carouzelnxt-dot-title";
+    var _duplicateCls = "__carouzelnxt-duplicate";
+    var _effects = [
+        { name: "scroll", cls: "__carouzelnxt-scroll" },
+        { name: "fade", cls: "__carouzelnxt-fade" },
+    ];
+    var _hiddenCls = "__carouzelnxt-hidden";
+    var _hideScbCls = "__carouzelnxt-scbhidden";
+    var _idPrefix = "__carouzelnxt";
+    var _nDirectionCls = "__carouzelnxt-to-next";
+    var _pDirectionCls = "__carouzelnxt-to-previous";
+    var _px = "px";
+    var _useCapture = false;
     var allInstances = {};
     var win = window;
     var group;
@@ -79,7 +77,7 @@ var CarouzelNXT;
     var $ = function (parent, str) { return $$(parent, str)[0]; };
     var generateID = function (element) {
         return element.getAttribute("id") ||
-            "".concat(_constants.idPrefix, "_").concat(new Date().getTime(), "_root_").concat(instanceIndex++);
+            "".concat(_idPrefix, "_").concat(new Date().getTime(), "_root_").concat(instanceIndex++);
     };
     var addClass = function (elem, classNames) {
         var _a;
@@ -152,10 +150,10 @@ var CarouzelNXT;
         var eventHandlerObj = {
             element: element,
             remove: function () {
-                element.removeEventListener(type, listener, _constants.useCapture);
+                element.removeEventListener(type, listener, _useCapture);
             },
         };
-        element.addEventListener(type, listener, _constants.useCapture);
+        element.addEventListener(type, listener, _useCapture);
         return eventHandlerObj;
     };
     var detectScrollEnd = function (event, core) {
@@ -216,9 +214,9 @@ var CarouzelNXT;
             useTitle: s.useTitlesAsDots,
             verH: s.verticalHeight,
         };
-        var effectObj = _constants.effects.filter(function (effect) { return effect.name === s.effect; })[0];
+        var effectObj = _effects.filter(function (effect) { return effect.name === s.effect; })[0];
         // TODO: Effect not found error
-        o.effect = effectObj.cls ? effectObj.cls : _constants.effects[0].cls;
+        o.effect = effectObj.cls ? effectObj.cls : _effects[0].cls;
         var defaultItem = {
             _2Scroll: s.slidesToScroll,
             _2Show: s.slidesToShow,
@@ -273,7 +271,7 @@ var CarouzelNXT;
         else {
             o.bps.push(defaultItem);
         }
-        if (o.effect === _constants.effects[1].cls) {
+        if (o.effect === _effects[1].cls) {
             o.scbar = false;
             o.bps.forEach(function (bp) {
                 bp.scbar = false;
@@ -287,31 +285,30 @@ var CarouzelNXT;
             currentBP = core.o.bps.filter(function (bp) { return bp.minW === 0; })[0];
         }
         currentBP._arrows
-            ? removeClass(core.$arrowsWrap, _constants.hiddenCls)
-            : addClass(core.$arrowsWrap, _constants.hiddenCls);
+            ? removeClass(core.$arrowsWrap, _hiddenCls)
+            : addClass(core.$arrowsWrap, _hiddenCls);
         currentBP._nav
-            ? removeClass(core.$navWrap, _constants.hiddenCls)
-            : addClass(core.$navWrap, _constants.hiddenCls);
+            ? removeClass(core.$navWrap, _hiddenCls)
+            : addClass(core.$navWrap, _hiddenCls);
         slideChunks = [];
         core.pts = [];
         core.scrlWidth = dimensions(core.$, core.$).width;
         core.slideWidth = core.scrlWidth / currentBP._2Show;
-        $$(core.$track, "".concat(_constants.$group)).forEach(function (group) {
+        $$(core.$track, "".concat(_$group)).forEach(function (group) {
             unwrapAll(group);
         });
         if (core.isVertical) {
-            core.$track.style.height = currentBP.verH + _constants.px;
+            core.$track.style.height = currentBP.verH + _px;
             core.$slides.forEach(function (slide) {
                 // TODO: see if nested if can be removed
                 if (currentBP) {
-                    slide.style.height =
-                        currentBP.verH / currentBP._2Show + _constants.px;
+                    slide.style.height = currentBP.verH / currentBP._2Show + _px;
                 }
             });
         }
         else {
             core.$slides.forEach(function (slide) {
-                slide.style.width = core.slideWidth + _constants.px;
+                slide.style.width = core.slideWidth + _px;
             });
         }
         for (var i = 0; i < core.$slides.length; i += currentBP._2Scroll) {
@@ -319,7 +316,7 @@ var CarouzelNXT;
         }
         slideChunks.forEach(function (chunk) {
             group = document.createElement("div");
-            addAttribute(group, _constants.$group.slice(1, -1), "true");
+            addAttribute(group, _$group.slice(1, -1), "true");
             wrapAll(chunk, group);
             core.isVertical
                 ? core.pts.push(core.isRtl
@@ -330,35 +327,33 @@ var CarouzelNXT;
                     : dimensions(core.$trackMask, group).left);
         });
     };
-    var toggleArrowEvents = function (dir, shouldAdd, core) {
-        if (dir === "next") {
-            if (shouldAdd) {
-                addClass(core.$nextBtn, _constants.disabledCls);
-                addAttribute(core.$nextBtn, "disabled", "disabled");
-            }
-            else {
-                removeClass(core.$nextBtn, _constants.disabledCls);
-                removeAttribute(core.$nextBtn, "disabled");
-            }
+    var toggleNextArrow = function (core, shouldAdd) {
+        if (shouldAdd) {
+            addClass(core.$nextBtn, _disabledCls);
+            addAttribute(core.$nextBtn, "disabled", "disabled");
         }
-        if (dir === "prev") {
-            if (shouldAdd) {
-                addClass(core.$prevBtn, _constants.disabledCls);
-                addAttribute(core.$prevBtn, "disabled", "disabled");
-            }
-            else {
-                removeClass(core.$prevBtn, _constants.disabledCls);
-                removeAttribute(core.$prevBtn, "disabled");
-            }
+        else {
+            removeClass(core.$nextBtn, _disabledCls);
+            removeAttribute(core.$nextBtn, "disabled");
+        }
+    };
+    var togglePrevArrow = function (core, shouldAdd) {
+        if (shouldAdd) {
+            addClass(core.$prevBtn, _disabledCls);
+            addAttribute(core.$prevBtn, "disabled", "disabled");
+        }
+        else {
+            removeClass(core.$prevBtn, _disabledCls);
+            removeAttribute(core.$prevBtn, "disabled");
         }
     };
     var initiateStylesAndEvents = function (core) {
         addClass(core.$, core.o.effect);
-        addClass(core.$arrowsWrap, _constants.hiddenCls);
-        addClass(core.$navWrap, _constants.hiddenCls);
-        addClass(core.$pageWrap, _constants.hiddenCls);
-        toggleArrowEvents("next", true, core);
-        toggleArrowEvents("prev", true, core);
+        addClass(core.$arrowsWrap, _hiddenCls);
+        addClass(core.$navWrap, _hiddenCls);
+        addClass(core.$pageWrap, _hiddenCls);
+        toggleNextArrow(core, true);
+        togglePrevArrow(core, true);
         // addClass(core.$prevBtn, _constants.disabledCls);
         // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
         // core.eH.push(
@@ -391,17 +386,17 @@ var CarouzelNXT;
             typeof options.beforeInitFn === "function" && options.beforeInitFn();
             var core = {
                 $: slider,
-                $arrowsWrap: $(slider, _constants.$arrowsWrapper),
-                $curPage: $(slider, _constants.$currentPage),
-                $nav: $(slider, _constants.$nav),
-                $navWrap: $(slider, _constants.$navWrapper),
-                $nextBtn: $(slider, _constants.$nextBtn),
-                $pageWrap: $(slider, _constants.$pageWrapper),
-                $prevBtn: $(slider, _constants.$prevBtn),
-                $slides: $$(slider, _constants.$slide),
-                $totPage: $(slider, _constants.$totalPages),
-                $track: $(slider, _constants.$track),
-                $trackMask: $(slider, _constants.$trackMask),
+                $arrowsWrap: $(slider, _$arrowsWrapper),
+                $curPage: $(slider, _$currentPage),
+                $nav: $(slider, _$nav),
+                $navWrap: $(slider, _$navWrapper),
+                $nextBtn: $(slider, _$nextBtn),
+                $pageWrap: $(slider, _$pageWrapper),
+                $prevBtn: $(slider, _$prevBtn),
+                $slides: $$(slider, _$slide),
+                $totPage: $(slider, _$totalPages),
+                $track: $(slider, _$track),
+                $trackMask: $(slider, _$trackMask),
                 eH: [],
                 enableNextBtn: false,
                 enablePrevBtn: false,
@@ -427,17 +422,17 @@ var CarouzelNXT;
                 // TODO: Raise invalid structure error
                 return null;
             }
-            var rtlAttr = core.$.getAttribute(_constants.$rtl.slice(1, -1));
+            var rtlAttr = core.$.getAttribute(_$rtl.slice(1, -1));
             if (typeof rtlAttr === "string" && rtlAttr.length > -1) {
                 core.isRtl = true;
             }
-            var verAttr = core.$.getAttribute(_constants.$vertical.slice(1, -1));
+            var verAttr = core.$.getAttribute(_$vertical.slice(1, -1));
             if (typeof verAttr === "string" && verAttr.length > -1) {
                 core.isVertical = true;
             }
             core.o.auto
-                ? addClass(core.$, _constants.autoplayCls)
-                : removeClass(core.$, _constants.autoplayCls);
+                ? addClass(core.$, _autoplayCls)
+                : removeClass(core.$, _autoplayCls);
             // core.eH.push(
             //   eventHandler(core.track, "scroll", (event: Event) => {
             //     // detectScrollEnd(event as Event, core);
@@ -478,7 +473,7 @@ var CarouzelNXT;
             var returnArr = [];
             var isGlobal = typeof selector === "boolean" && selector;
             var allSliders = isGlobal
-                ? $$(document, _constants.$global)
+                ? $$(document, _$global)
                 : $$(document, selector.toString());
             allSliders.forEach(function (slider) {
                 var sliderId = generateID(slider);
@@ -486,7 +481,7 @@ var CarouzelNXT;
                 addAttribute(slider, "id", sliderId);
                 if (!allInstances[sliderId]) {
                     receivedOptionsStr = isGlobal
-                        ? JSON.parse((slider.getAttribute(_constants.$global.slice(1, -1)) || "").replace(/'/g, '"'))
+                        ? JSON.parse((slider.getAttribute(_$global.slice(1, -1)) || "").replace(/'/g, '"'))
                         : opts
                             ? opts
                             : {};
@@ -497,7 +492,7 @@ var CarouzelNXT;
                     }
                 }
             });
-            win.addEventListener("resize", winResizeFn, _constants.useCapture);
+            win.addEventListener("resize", winResizeFn, _useCapture);
             return {
                 addSlide: addSlide.bind(this, returnArr),
                 destroy: destroy.bind(this, returnArr),
@@ -512,7 +507,7 @@ var CarouzelNXT;
     // // export const getInstance = () => {};
     //
     // export const
-    CarouzelNXT.version = _constants._v;
+    CarouzelNXT.version = __v;
     CarouzelNXT.init = Root.getInstance().init;
 })(CarouzelNXT || (CarouzelNXT = {}));
 

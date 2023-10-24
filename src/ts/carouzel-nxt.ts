@@ -108,41 +108,39 @@ namespace CarouzelNXT {
     remove: () => void;
   }
 
-  const _constants = {
-    _v: "1.0.0",
-    $arrowsWrapper: "[data-carouzelnxt-arrowswrapper]",
-    $currentPage: "[data-carouzelnxt-currentpage]",
-    $global: "[data-carouzelnxt-auto]",
-    $group: "[data-carouzelnxt-group]",
-    $nav: "[data-carouzelnxt-navigation]",
-    $navWrapper: "[data-carouzelnxt-navigationwrapper]",
-    $nextBtn: "[data-carouzelnxt-nextarrow]",
-    $pageWrapper: "[data-carouzelnxt-pageinfo]",
-    $prevBtn: "[data-carouzelnxt-previousarrow]",
-    $rtl: "[data-carouzelnxt-rtl]",
-    $slide: "[data-carouzelnxt-slide]",
-    $totalPages: "[data-carouzelnxt-totalpages]",
-    $track: "[data-carouzelnxt-track]",
-    $trackMask: "[data-carouzelnxt-trackmask]",
-    $vertical: "[data-carouzelnxt-vertical]",
-    activeCls: "__carouzelnxt-active",
-    autoplayCls: "__carouzelnxt-autoplay",
-    disabledCls: "__carouzelnxt-disabled",
-    dotIndexCls: "__carouzelnxt-dot",
-    dotTitleCls: "__carouzelnxt-dot-title",
-    duplicateCls: "__carouzelnxt-duplicate",
-    effects: [
-      { name: "scroll", cls: "__carouzelnxt-scroll" },
-      { name: "fade", cls: "__carouzelnxt-fade" },
-    ],
-    hiddenCls: "__carouzelnxt-hidden",
-    hideScbCls: "__carouzelnxt-scbhidden",
-    idPrefix: "__carouzelnxt",
-    nDirectionCls: "__carouzelnxt-to-next",
-    pDirectionCls: "__carouzelnxt-to-previous",
-    px: "px",
-    useCapture: false,
-  };
+  const __v = "1.0.0";
+  const _$arrowsWrapper = "[data-carouzelnxt-arrowswrapper]";
+  const _$currentPage = "[data-carouzelnxt-currentpage]";
+  const _$global = "[data-carouzelnxt-auto]";
+  const _$group = "[data-carouzelnxt-group]";
+  const _$nav = "[data-carouzelnxt-navigation]";
+  const _$navWrapper = "[data-carouzelnxt-navigationwrapper]";
+  const _$nextBtn = "[data-carouzelnxt-nextarrow]";
+  const _$pageWrapper = "[data-carouzelnxt-pageinfo]";
+  const _$prevBtn = "[data-carouzelnxt-previousarrow]";
+  const _$rtl = "[data-carouzelnxt-rtl]";
+  const _$slide = "[data-carouzelnxt-slide]";
+  const _$totalPages = "[data-carouzelnxt-totalpages]";
+  const _$track = "[data-carouzelnxt-track]";
+  const _$trackMask = "[data-carouzelnxt-trackmask]";
+  const _$vertical = "[data-carouzelnxt-vertical]";
+  const _activeCls = "__carouzelnxt-active";
+  const _autoplayCls = "__carouzelnxt-autoplay";
+  const _disabledCls = "__carouzelnxt-disabled";
+  const _dotIndexCls = "__carouzelnxt-dot";
+  const _dotTitleCls = "__carouzelnxt-dot-title";
+  const _duplicateCls = "__carouzelnxt-duplicate";
+  const _effects = [
+    { name: "scroll", cls: "__carouzelnxt-scroll" },
+    { name: "fade", cls: "__carouzelnxt-fade" },
+  ];
+  const _hiddenCls = "__carouzelnxt-hidden";
+  const _hideScbCls = "__carouzelnxt-scbhidden";
+  const _idPrefix = "__carouzelnxt";
+  const _nDirectionCls = "__carouzelnxt-to-next";
+  const _pDirectionCls = "__carouzelnxt-to-previous";
+  const _px = "px";
+  const _useCapture = false;
 
   const allInstances: IInstances = {};
   const win = window;
@@ -191,7 +189,7 @@ namespace CarouzelNXT {
 
   const generateID = (element: Element): string =>
     element.getAttribute("id") ||
-    `${_constants.idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
+    `${_idPrefix}_${new Date().getTime()}_root_${instanceIndex++}`;
 
   const addClass = (elem: HTMLElement, classNames: string) => {
     elem.classList.add(...classNames.split(" "));
@@ -276,10 +274,10 @@ namespace CarouzelNXT {
     const eventHandlerObj: IEventHandler = {
       element,
       remove: () => {
-        element.removeEventListener(type, listener, _constants.useCapture);
+        element.removeEventListener(type, listener, _useCapture);
       },
     };
-    element.addEventListener(type, listener, _constants.useCapture);
+    element.addEventListener(type, listener, _useCapture);
     return eventHandlerObj;
   };
 
@@ -353,12 +351,10 @@ namespace CarouzelNXT {
       verH: s.verticalHeight,
     };
 
-    const effectObj = _constants.effects.filter(
-      (effect) => effect.name === s.effect
-    )[0];
+    const effectObj = _effects.filter((effect) => effect.name === s.effect)[0];
 
     // TODO: Effect not found error
-    o.effect = effectObj.cls ? effectObj.cls : _constants.effects[0].cls;
+    o.effect = effectObj.cls ? effectObj.cls : _effects[0].cls;
 
     const defaultItem: IBreakpointShortened = {
       _2Scroll: s.slidesToScroll,
@@ -417,7 +413,7 @@ namespace CarouzelNXT {
       o.bps.push(defaultItem as IBreakpointShortened);
     }
 
-    if (o.effect === _constants.effects[1].cls) {
+    if (o.effect === _effects[1].cls) {
       o.scbar = false;
       o.bps.forEach((bp) => {
         bp.scbar = false;
@@ -433,33 +429,32 @@ namespace CarouzelNXT {
       currentBP = core.o.bps.filter((bp) => bp.minW === 0)[0];
     }
     currentBP._arrows
-      ? removeClass(core.$arrowsWrap, _constants.hiddenCls)
-      : addClass(core.$arrowsWrap, _constants.hiddenCls);
+      ? removeClass(core.$arrowsWrap, _hiddenCls)
+      : addClass(core.$arrowsWrap, _hiddenCls);
     currentBP._nav
-      ? removeClass(core.$navWrap, _constants.hiddenCls)
-      : addClass(core.$navWrap, _constants.hiddenCls);
+      ? removeClass(core.$navWrap, _hiddenCls)
+      : addClass(core.$navWrap, _hiddenCls);
 
     slideChunks = [];
     core.pts = [];
     core.scrlWidth = dimensions(core.$, core.$).width;
     core.slideWidth = core.scrlWidth / currentBP._2Show;
 
-    $$(core.$track, `${_constants.$group}`).forEach((group) => {
+    $$(core.$track, `${_$group}`).forEach((group) => {
       unwrapAll(group);
     });
 
     if (core.isVertical) {
-      core.$track.style.height = currentBP.verH + _constants.px;
+      core.$track.style.height = currentBP.verH + _px;
       core.$slides.forEach((slide) => {
         // TODO: see if nested if can be removed
         if (currentBP) {
-          slide.style.height =
-            currentBP.verH / currentBP._2Show + _constants.px;
+          slide.style.height = currentBP.verH / currentBP._2Show + _px;
         }
       });
     } else {
       core.$slides.forEach((slide) => {
-        slide.style.width = core.slideWidth + _constants.px;
+        slide.style.width = core.slideWidth + _px;
       });
     }
     for (let i = 0; i < core.$slides.length; i += currentBP._2Scroll) {
@@ -467,7 +462,7 @@ namespace CarouzelNXT {
     }
     slideChunks.forEach((chunk) => {
       group = document.createElement("div") as HTMLElement;
-      addAttribute(group, _constants.$group.slice(1, -1), "true");
+      addAttribute(group, _$group.slice(1, -1), "true");
       wrapAll(chunk, group);
       core.isVertical
         ? core.pts.push(
@@ -483,35 +478,33 @@ namespace CarouzelNXT {
     });
   };
 
-  const toggleArrowEvents = (dir: string, shouldAdd: boolean, core: ICore) => {
-    if (dir === "next") {
-      if (shouldAdd) {
-        addClass(core.$nextBtn, _constants.disabledCls);
-        addAttribute(core.$nextBtn, "disabled", "disabled");
-      } else {
-        removeClass(core.$nextBtn, _constants.disabledCls);
-        removeAttribute(core.$nextBtn, "disabled");
-      }
+  const toggleNextArrow = (core: ICore, shouldAdd: boolean) => {
+    if (shouldAdd) {
+      addClass(core.$nextBtn, _disabledCls);
+      addAttribute(core.$nextBtn, "disabled", "disabled");
+    } else {
+      removeClass(core.$nextBtn, _disabledCls);
+      removeAttribute(core.$nextBtn, "disabled");
     }
-    if (dir === "prev") {
-      if (shouldAdd) {
-        addClass(core.$prevBtn, _constants.disabledCls);
-        addAttribute(core.$prevBtn, "disabled", "disabled");
-      } else {
-        removeClass(core.$prevBtn, _constants.disabledCls);
-        removeAttribute(core.$prevBtn, "disabled");
-      }
+  };
+  const togglePrevArrow = (core: ICore, shouldAdd: boolean) => {
+    if (shouldAdd) {
+      addClass(core.$prevBtn, _disabledCls);
+      addAttribute(core.$prevBtn, "disabled", "disabled");
+    } else {
+      removeClass(core.$prevBtn, _disabledCls);
+      removeAttribute(core.$prevBtn, "disabled");
     }
   };
 
   const initiateStylesAndEvents = (core: ICore) => {
     addClass(core.$, core.o.effect);
-    addClass(core.$arrowsWrap, _constants.hiddenCls);
-    addClass(core.$navWrap, _constants.hiddenCls);
-    addClass(core.$pageWrap, _constants.hiddenCls);
+    addClass(core.$arrowsWrap, _hiddenCls);
+    addClass(core.$navWrap, _hiddenCls);
+    addClass(core.$pageWrap, _hiddenCls);
 
-    toggleArrowEvents("next", true, core);
-    toggleArrowEvents("prev", true, core);
+    toggleNextArrow(core, true);
+    togglePrevArrow(core, true);
 
     // addClass(core.$prevBtn, _constants.disabledCls);
     // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
@@ -559,17 +552,17 @@ namespace CarouzelNXT {
       typeof options.beforeInitFn === "function" && options.beforeInitFn();
       const core: ICore = {
         $: slider as HTMLElement,
-        $arrowsWrap: $(slider, _constants.$arrowsWrapper) as HTMLElement,
-        $curPage: $(slider, _constants.$currentPage) as HTMLElement,
-        $nav: $(slider, _constants.$nav) as HTMLElement,
-        $navWrap: $(slider, _constants.$navWrapper) as HTMLElement,
-        $nextBtn: $(slider, _constants.$nextBtn) as HTMLElement,
-        $pageWrap: $(slider, _constants.$pageWrapper) as HTMLElement,
-        $prevBtn: $(slider, _constants.$prevBtn) as HTMLElement,
-        $slides: $$(slider, _constants.$slide) as HTMLElement[],
-        $totPage: $(slider, _constants.$totalPages) as HTMLElement,
-        $track: $(slider, _constants.$track) as HTMLElement,
-        $trackMask: $(slider, _constants.$trackMask) as HTMLElement,
+        $arrowsWrap: $(slider, _$arrowsWrapper) as HTMLElement,
+        $curPage: $(slider, _$currentPage) as HTMLElement,
+        $nav: $(slider, _$nav) as HTMLElement,
+        $navWrap: $(slider, _$navWrapper) as HTMLElement,
+        $nextBtn: $(slider, _$nextBtn) as HTMLElement,
+        $pageWrap: $(slider, _$pageWrapper) as HTMLElement,
+        $prevBtn: $(slider, _$prevBtn) as HTMLElement,
+        $slides: $$(slider, _$slide) as HTMLElement[],
+        $totPage: $(slider, _$totalPages) as HTMLElement,
+        $track: $(slider, _$track) as HTMLElement,
+        $trackMask: $(slider, _$trackMask) as HTMLElement,
         eH: [],
         enableNextBtn: false,
         enablePrevBtn: false,
@@ -599,19 +592,19 @@ namespace CarouzelNXT {
         return null;
       }
 
-      const rtlAttr = core.$.getAttribute(_constants.$rtl.slice(1, -1));
+      const rtlAttr = core.$.getAttribute(_$rtl.slice(1, -1));
       if (typeof rtlAttr === "string" && rtlAttr.length > -1) {
         core.isRtl = true;
       }
 
-      const verAttr = core.$.getAttribute(_constants.$vertical.slice(1, -1));
+      const verAttr = core.$.getAttribute(_$vertical.slice(1, -1));
       if (typeof verAttr === "string" && verAttr.length > -1) {
         core.isVertical = true;
       }
 
       core.o.auto
-        ? addClass(core.$, _constants.autoplayCls)
-        : removeClass(core.$, _constants.autoplayCls);
+        ? addClass(core.$, _autoplayCls)
+        : removeClass(core.$, _autoplayCls);
 
       // core.eH.push(
       //   eventHandler(core.track, "scroll", (event: Event) => {
@@ -657,7 +650,7 @@ namespace CarouzelNXT {
       const returnArr: ICore[] = [];
       const isGlobal = typeof selector === "boolean" && selector;
       const allSliders = isGlobal
-        ? $$(document as Document, _constants.$global)
+        ? $$(document as Document, _$global)
         : $$(document as Document, selector.toString());
 
       allSliders.forEach((slider: Element) => {
@@ -667,9 +660,10 @@ namespace CarouzelNXT {
         if (!allInstances[sliderId]) {
           receivedOptionsStr = isGlobal
             ? JSON.parse(
-                (
-                  slider.getAttribute(_constants.$global.slice(1, -1)) || ""
-                ).replace(/'/g, '"')
+                (slider.getAttribute(_$global.slice(1, -1)) || "").replace(
+                  /'/g,
+                  '"'
+                )
               )
             : opts
             ? opts
@@ -684,7 +678,7 @@ namespace CarouzelNXT {
           }
         }
       });
-      win.addEventListener("resize", winResizeFn, _constants.useCapture);
+      win.addEventListener("resize", winResizeFn, _useCapture);
       return {
         addSlide: addSlide.bind(this, returnArr),
         destroy: destroy.bind(this, returnArr),
@@ -700,6 +694,6 @@ namespace CarouzelNXT {
   // // export const getInstance = () => {};
   //
   // export const
-  export const version = _constants._v;
+  export const version = __v;
   export const init = Root.getInstance().init;
 }
