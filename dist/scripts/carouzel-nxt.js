@@ -328,22 +328,24 @@ var CarouzelNXT;
         });
     };
     var toggleNextArrow = function (core, shouldAdd) {
+        if (shouldAdd === void 0) { shouldAdd = false; }
         if (shouldAdd) {
-            addClass(core.$nextBtn, _disabledCls);
+            removeClass(core.$nextBtn, _disabledCls);
             addAttribute(core.$nextBtn, "disabled", "disabled");
         }
         else {
-            removeClass(core.$nextBtn, _disabledCls);
+            addClass(core.$nextBtn, _disabledCls);
             removeAttribute(core.$nextBtn, "disabled");
         }
     };
     var togglePrevArrow = function (core, shouldAdd) {
+        if (shouldAdd === void 0) { shouldAdd = false; }
         if (shouldAdd) {
-            addClass(core.$prevBtn, _disabledCls);
+            removeClass(core.$prevBtn, _disabledCls);
             addAttribute(core.$prevBtn, "disabled", "disabled");
         }
         else {
-            removeClass(core.$prevBtn, _disabledCls);
+            addClass(core.$prevBtn, _disabledCls);
             removeAttribute(core.$prevBtn, "disabled");
         }
     };
@@ -352,8 +354,16 @@ var CarouzelNXT;
         addClass(core.$arrowsWrap, _hiddenCls);
         addClass(core.$navWrap, _hiddenCls);
         addClass(core.$pageWrap, _hiddenCls);
-        toggleNextArrow(core, true);
-        togglePrevArrow(core, true);
+        toggleNextArrow(core, false);
+        togglePrevArrow(core, false);
+        core.eH.push(eventHandler(core.$nextBtn, "click", function (event) {
+            event.preventDefault();
+            console.log("==========next");
+        }));
+        core.eH.push(eventHandler(core.$prevBtn, "click", function (event) {
+            event.preventDefault();
+            console.log("==========prev");
+        }));
         // addClass(core.$prevBtn, _constants.disabledCls);
         // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
         // core.eH.push(
