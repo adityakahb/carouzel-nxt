@@ -73,22 +73,25 @@ namespace CarouzelNXT {
     verH: number;
   }
 
+  interface IControl {
+    el: HTMLElement;
+    isActive: boolean;
+  }
+
   interface ICore {
     $: HTMLElement;
     $arrowsWrap: HTMLElement;
     $curPage: HTMLElement;
-    $nav: HTMLElement;
+    $nav: IControl;
     $navWrap: HTMLElement;
-    $nextBtn: HTMLElement;
+    $nextBtn: IControl;
     $pageWrap: HTMLElement;
-    $prevBtn: HTMLElement;
+    $prevBtn: IControl;
     $slides: HTMLElement[];
     $totPage: HTMLElement;
     $track: HTMLElement;
     $trackMask: HTMLElement;
     eH: IEventHandler[];
-    enableNextBtn: boolean;
-    enablePrevBtn: boolean;
     isKeydown: boolean;
     isMousedown: boolean;
     isRtl: boolean;
@@ -126,6 +129,10 @@ namespace CarouzelNXT {
   const _$vertical = "[data-carouzelnxt-vertical]";
   const _activeCls = "__carouzelnxt-active";
   const _autoplayCls = "__carouzelnxt-autoplay";
+  const _dir = {
+    n: "next",
+    p: "prev",
+  };
   const _disabledCls = "__carouzelnxt-disabled";
   const _dotIndexCls = "__carouzelnxt-dot";
   const _dotTitleCls = "__carouzelnxt-dot-title";
@@ -134,6 +141,14 @@ namespace CarouzelNXT {
     { name: "scroll", cls: "__carouzelnxt-scroll" },
     { name: "fade", cls: "__carouzelnxt-fade" },
   ];
+  const _events = {
+    c: "click",
+    kd: "keydown",
+    ku: "keyup",
+    md: "mousedown",
+    mu: "mouseup",
+    t: "tab",
+  };
   const _hiddenCls = "__carouzelnxt-hidden";
   const _hideScbCls = "__carouzelnxt-scbhidden";
   const _idPrefix = "__carouzelnxt";
@@ -478,23 +493,45 @@ namespace CarouzelNXT {
     });
   };
 
-  const toggleNextArrow = (core: ICore, shouldAdd: boolean = false) => {
-    if (shouldAdd) {
-      removeClass(core.$nextBtn, _disabledCls);
-      addAttribute(core.$nextBtn, "disabled", "disabled");
-    } else {
-      addClass(core.$nextBtn, _disabledCls);
-      removeAttribute(core.$nextBtn, "disabled");
+  const toggleArrow = (
+    dir: string,
+    core: ICore,
+    shouldAdd: boolean = false
+  ) => {
+    if (dir === _dir.n) {
+      core.$nextBtn.isActive = shouldAdd;
+
+      if (shouldAdd) {
+        removeClass(core.$nextBtn.el, _disabledCls);
+        removeAttribute(core.$nextBtn.el, "disabled");
+      } else {
+        addClass(core.$nextBtn.el, _disabledCls);
+        addAttribute(core.$nextBtn.el, "disabled", "disabled");
+      }
+    }
+    if (dir === _dir.p) {
+      core.$prevBtn.isActive = shouldAdd;
+
+      if (shouldAdd) {
+        removeClass(core.$prevBtn.el, _disabledCls);
+        removeAttribute(core.$prevBtn.el, "disabled");
+      } else {
+        addClass(core.$prevBtn.el, _disabledCls);
+        addAttribute(core.$prevBtn.el, "disabled", "disabled");
+      }
     }
   };
 
-  const togglePrevArrow = (core: ICore, shouldAdd: boolean = false) => {
-    if (shouldAdd) {
-      removeClass(core.$prevBtn, _disabledCls);
-      addAttribute(core.$prevBtn, "disabled", "disabled");
-    } else {
-      addClass(core.$prevBtn, _disabledCls);
-      removeAttribute(core.$prevBtn, "disabled");
+  const go2next = (event: Event, core: ICore) => {
+    if (core.$nextBtn.isActive) {
+      event.preventDefault();
+      console.log("==========next");
+    }
+  };
+  const go2prev = (event: Event, core: ICore) => {
+    if (core.$prevBtn.isActive) {
+      event.preventDefault();
+      console.log("==========prev");
     }
   };
 
@@ -504,59 +541,49 @@ namespace CarouzelNXT {
     addClass(core.$navWrap, _hiddenCls);
     addClass(core.$pageWrap, _hiddenCls);
 
-    toggleNextArrow(core, false);
-    togglePrevArrow(core, false);
+    toggleArrow(_dir.n, core, false);
+    toggleArrow(_dir.p, core, false);
 
     core.eH.push(
-      eventHandler(core.$nextBtn, "click", (event) => {
-        event.preventDefault();
-        console.log("==========next");
+      eventHandler(core.$nextBtn.el, _events.c, (event) => {
+        go2next(event, core);
       })
     );
 
     core.eH.push(
-      eventHandler(core.$prevBtn, "click", (event) => {
-        event.preventDefault();
-        console.log("==========prev");
+      eventHandler(core.$prevBtn.el, _events.c, (event) => {
+        go2prev(event, core);
       })
     );
 
-    // addClass(core.$prevBtn, _constants.disabledCls);
-    // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
-
-    // core.eH.push(
-    //   eventHandler(core.$nextBtn, "click", (event) => {
-    //     goToNext(event, core);
-    //   })
-    // );
-    // core.eH.push(
-    //   eventHandler(core.$prevBtn, "click", (event) => {
-    //     goToPrev(event, core);
-    //   })
-    // );
-
     core.eH.push(
-      eventHandler(core.$track, "mousedown", () => {
+      eventHandler(core.$track, _events.md, () => {
         core.isMousedown = true;
       })
     );
     core.eH.push(
-      eventHandler(core.$track, "mouseup", (event: Event) => {
+      eventHandler(core.$track, _events.mu, (event: Event) => {
         core.isMousedown = false;
         detectScrollEnd(event as Event, core);
       })
     );
     core.eH.push(
-      eventHandler(core.$track, "keydown", () => {
+      eventHandler(core.$track, _events.kd, () => {
         core.isKeydown = true;
       })
     );
     core.eH.push(
-      eventHandler(core.$track, "keyup", (event: Event) => {
+      eventHandler(core.$track, _events.ku, (event: Event) => {
         core.isKeydown = false;
         detectScrollEnd(event as Event, core);
       })
     );
+  };
+
+  const manageDuplicates = (core: ICore) => {
+    core.o.bps.forEach((bp) => {
+      console.log(bp._2Show);
+    });
   };
 
   const initCarouzelNxt = (
@@ -569,18 +596,25 @@ namespace CarouzelNXT {
         $: slider as HTMLElement,
         $arrowsWrap: $(slider, _$arrowsWrapper) as HTMLElement,
         $curPage: $(slider, _$currentPage) as HTMLElement,
-        $nav: $(slider, _$nav) as HTMLElement,
+        $nav: {
+          el: $(slider, _$nav) as HTMLElement,
+          isActive: false,
+        },
         $navWrap: $(slider, _$navWrapper) as HTMLElement,
-        $nextBtn: $(slider, _$nextBtn) as HTMLElement,
+        $nextBtn: {
+          el: $(slider, _$nextBtn) as HTMLElement,
+          isActive: false,
+        },
         $pageWrap: $(slider, _$pageWrapper) as HTMLElement,
-        $prevBtn: $(slider, _$prevBtn) as HTMLElement,
+        $prevBtn: {
+          el: $(slider, _$prevBtn) as HTMLElement,
+          isActive: false,
+        },
         $slides: $$(slider, _$slide) as HTMLElement[],
         $totPage: $(slider, _$totalPages) as HTMLElement,
         $track: $(slider, _$track) as HTMLElement,
         $trackMask: $(slider, _$trackMask) as HTMLElement,
         eH: [],
-        enableNextBtn: false,
-        enablePrevBtn: false,
         isKeydown: false,
         isMousedown: false,
         isRtl: false,
@@ -628,6 +662,7 @@ namespace CarouzelNXT {
       // );
       core.$track.tabIndex = 0;
 
+      manageDuplicates(core);
       initiateStylesAndEvents(core);
       applyLayout(core);
 
@@ -704,11 +739,6 @@ namespace CarouzelNXT {
 
   Root.getInstance().initGlobal();
 
-  // export const
-  // export const
-  // // export const getInstance = () => {};
-  //
-  // export const
   export const version = __v;
   export const init = Root.getInstance().init;
 }

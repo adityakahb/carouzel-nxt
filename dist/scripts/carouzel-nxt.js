@@ -19,6 +19,10 @@ var CarouzelNXT;
     var _$vertical = "[data-carouzelnxt-vertical]";
     var _activeCls = "__carouzelnxt-active";
     var _autoplayCls = "__carouzelnxt-autoplay";
+    var _dir = {
+        n: "next",
+        p: "prev",
+    };
     var _disabledCls = "__carouzelnxt-disabled";
     var _dotIndexCls = "__carouzelnxt-dot";
     var _dotTitleCls = "__carouzelnxt-dot-title";
@@ -27,6 +31,14 @@ var CarouzelNXT;
         { name: "scroll", cls: "__carouzelnxt-scroll" },
         { name: "fade", cls: "__carouzelnxt-fade" },
     ];
+    var _events = {
+        c: "click",
+        kd: "keydown",
+        ku: "keyup",
+        md: "mousedown",
+        mu: "mouseup",
+        t: "tab",
+    };
     var _hiddenCls = "__carouzelnxt-hidden";
     var _hideScbCls = "__carouzelnxt-scbhidden";
     var _idPrefix = "__carouzelnxt";
@@ -327,26 +339,41 @@ var CarouzelNXT;
                     : dimensions(core.$trackMask, group).left);
         });
     };
-    var toggleNextArrow = function (core, shouldAdd) {
+    var toggleArrow = function (dir, core, shouldAdd) {
         if (shouldAdd === void 0) { shouldAdd = false; }
-        if (shouldAdd) {
-            removeClass(core.$nextBtn, _disabledCls);
-            addAttribute(core.$nextBtn, "disabled", "disabled");
+        if (dir === _dir.n) {
+            core.$nextBtn.isActive = shouldAdd;
+            if (shouldAdd) {
+                removeClass(core.$nextBtn.el, _disabledCls);
+                removeAttribute(core.$nextBtn.el, "disabled");
+            }
+            else {
+                addClass(core.$nextBtn.el, _disabledCls);
+                addAttribute(core.$nextBtn.el, "disabled", "disabled");
+            }
         }
-        else {
-            addClass(core.$nextBtn, _disabledCls);
-            removeAttribute(core.$nextBtn, "disabled");
+        if (dir === _dir.p) {
+            core.$prevBtn.isActive = shouldAdd;
+            if (shouldAdd) {
+                removeClass(core.$prevBtn.el, _disabledCls);
+                removeAttribute(core.$prevBtn.el, "disabled");
+            }
+            else {
+                addClass(core.$prevBtn.el, _disabledCls);
+                addAttribute(core.$prevBtn.el, "disabled", "disabled");
+            }
         }
     };
-    var togglePrevArrow = function (core, shouldAdd) {
-        if (shouldAdd === void 0) { shouldAdd = false; }
-        if (shouldAdd) {
-            removeClass(core.$prevBtn, _disabledCls);
-            addAttribute(core.$prevBtn, "disabled", "disabled");
+    var go2next = function (event, core) {
+        if (core.$nextBtn.isActive) {
+            event.preventDefault();
+            console.log("==========next");
         }
-        else {
-            addClass(core.$prevBtn, _disabledCls);
-            removeAttribute(core.$prevBtn, "disabled");
+    };
+    var go2prev = function (event, core) {
+        if (core.$prevBtn.isActive) {
+            event.preventDefault();
+            console.log("==========prev");
         }
     };
     var initiateStylesAndEvents = function (core) {
@@ -354,42 +381,33 @@ var CarouzelNXT;
         addClass(core.$arrowsWrap, _hiddenCls);
         addClass(core.$navWrap, _hiddenCls);
         addClass(core.$pageWrap, _hiddenCls);
-        toggleNextArrow(core, false);
-        togglePrevArrow(core, false);
-        core.eH.push(eventHandler(core.$nextBtn, "click", function (event) {
-            event.preventDefault();
-            console.log("==========next");
+        toggleArrow(_dir.n, core, false);
+        toggleArrow(_dir.p, core, false);
+        core.eH.push(eventHandler(core.$nextBtn.el, _events.c, function (event) {
+            go2next(event, core);
         }));
-        core.eH.push(eventHandler(core.$prevBtn, "click", function (event) {
-            event.preventDefault();
-            console.log("==========prev");
+        core.eH.push(eventHandler(core.$prevBtn.el, _events.c, function (event) {
+            go2prev(event, core);
         }));
-        // addClass(core.$prevBtn, _constants.disabledCls);
-        // toggleAttribute(core.$prevBtn, "disabled", "disabled", true);
-        // core.eH.push(
-        //   eventHandler(core.$nextBtn, "click", (event) => {
-        //     goToNext(event, core);
-        //   })
-        // );
-        // core.eH.push(
-        //   eventHandler(core.$prevBtn, "click", (event) => {
-        //     goToPrev(event, core);
-        //   })
-        // );
-        core.eH.push(eventHandler(core.$track, "mousedown", function () {
+        core.eH.push(eventHandler(core.$track, _events.md, function () {
             core.isMousedown = true;
         }));
-        core.eH.push(eventHandler(core.$track, "mouseup", function (event) {
+        core.eH.push(eventHandler(core.$track, _events.mu, function (event) {
             core.isMousedown = false;
             detectScrollEnd(event, core);
         }));
-        core.eH.push(eventHandler(core.$track, "keydown", function () {
+        core.eH.push(eventHandler(core.$track, _events.kd, function () {
             core.isKeydown = true;
         }));
-        core.eH.push(eventHandler(core.$track, "keyup", function (event) {
+        core.eH.push(eventHandler(core.$track, _events.ku, function (event) {
             core.isKeydown = false;
             detectScrollEnd(event, core);
         }));
+    };
+    var manageDuplicates = function (core) {
+        core.o.bps.forEach(function (bp) {
+            console.log(bp._2Show);
+        });
     };
     var initCarouzelNxt = function (slider, options) {
         if (areValidOptions(options)) {
@@ -398,18 +416,25 @@ var CarouzelNXT;
                 $: slider,
                 $arrowsWrap: $(slider, _$arrowsWrapper),
                 $curPage: $(slider, _$currentPage),
-                $nav: $(slider, _$nav),
+                $nav: {
+                    el: $(slider, _$nav),
+                    isActive: false,
+                },
                 $navWrap: $(slider, _$navWrapper),
-                $nextBtn: $(slider, _$nextBtn),
+                $nextBtn: {
+                    el: $(slider, _$nextBtn),
+                    isActive: false,
+                },
                 $pageWrap: $(slider, _$pageWrapper),
-                $prevBtn: $(slider, _$prevBtn),
+                $prevBtn: {
+                    el: $(slider, _$prevBtn),
+                    isActive: false,
+                },
                 $slides: $$(slider, _$slide),
                 $totPage: $(slider, _$totalPages),
                 $track: $(slider, _$track),
                 $trackMask: $(slider, _$trackMask),
                 eH: [],
-                enableNextBtn: false,
-                enablePrevBtn: false,
                 isKeydown: false,
                 isMousedown: false,
                 isRtl: false,
@@ -449,6 +474,7 @@ var CarouzelNXT;
             //   })
             // );
             core.$track.tabIndex = 0;
+            manageDuplicates(core);
             initiateStylesAndEvents(core);
             applyLayout(core);
             typeof options.afterInitFn === "function" && options.afterInitFn();
@@ -512,11 +538,6 @@ var CarouzelNXT;
         return Root;
     }());
     Root.getInstance().initGlobal();
-    // export const
-    // export const
-    // // export const getInstance = () => {};
-    //
-    // export const
     CarouzelNXT.version = __v;
     CarouzelNXT.init = Root.getInstance().init;
 })(CarouzelNXT || (CarouzelNXT = {}));
