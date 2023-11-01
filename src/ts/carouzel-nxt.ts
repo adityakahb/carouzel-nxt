@@ -501,24 +501,19 @@ namespace CarouzelNXT {
     if (dir === _dir.n) {
       core.$nextBtn.isActive = shouldAdd;
 
-      if (shouldAdd) {
-        removeClass(core.$nextBtn.el, _disabledCls);
-        removeAttribute(core.$nextBtn.el, "disabled");
-      } else {
-        addClass(core.$nextBtn.el, _disabledCls);
-        addAttribute(core.$nextBtn.el, "disabled", "disabled");
-      }
-    }
-    if (dir === _dir.p) {
+      shouldAdd
+        ? (removeClass(core.$nextBtn.el, _disabledCls),
+          removeAttribute(core.$nextBtn.el, "disabled"))
+        : (addClass(core.$nextBtn.el, _disabledCls),
+          addAttribute(core.$nextBtn.el, "disabled", "disabled"));
+    } else if (dir === _dir.p) {
       core.$prevBtn.isActive = shouldAdd;
 
-      if (shouldAdd) {
-        removeClass(core.$prevBtn.el, _disabledCls);
-        removeAttribute(core.$prevBtn.el, "disabled");
-      } else {
-        addClass(core.$prevBtn.el, _disabledCls);
-        addAttribute(core.$prevBtn.el, "disabled", "disabled");
-      }
+      shouldAdd
+        ? (removeClass(core.$prevBtn.el, _disabledCls),
+          removeAttribute(core.$prevBtn.el, "disabled"))
+        : (addClass(core.$prevBtn.el, _disabledCls),
+          addAttribute(core.$prevBtn.el, "disabled", "disabled"));
     }
   };
 
@@ -541,8 +536,8 @@ namespace CarouzelNXT {
     addClass(core.$navWrap, _hiddenCls);
     addClass(core.$pageWrap, _hiddenCls);
 
-    toggleArrow(_dir.n, core, false);
-    toggleArrow(_dir.p, core, false);
+    toggleArrow(_dir.n, core, true);
+    toggleArrow(_dir.p, core, true);
 
     core.eH.push(
       eventHandler(core.$nextBtn.el, _events.c, (event) => {
@@ -581,8 +576,25 @@ namespace CarouzelNXT {
   };
 
   const manageDuplicates = (core: ICore) => {
+    let duplicateArr: HTMLElement[] = [];
+    let duplicateElement: HTMLElement;
     core.o.bps.forEach((bp) => {
-      console.log(bp._2Show);
+      bp.pDups = [];
+      bp.nDups = [];
+      duplicateArr = core.$slides.slice(0, bp._2Show);
+      duplicateArr.forEach((slide) => {
+        duplicateElement = (<Node>slide).cloneNode(true) as HTMLElement;
+        addClass(duplicateElement, _duplicateCls);
+        removeAttribute(duplicateElement, "id");
+        bp.nDups.push(duplicateElement);
+      });
+      duplicateArr = core.$slides.slice(-bp._2Show);
+      duplicateArr.forEach((slide) => {
+        duplicateElement = (<Node>slide).cloneNode(true) as HTMLElement;
+        addClass(duplicateElement, _duplicateCls);
+        removeAttribute(duplicateElement, "id");
+        bp.pDups.push(duplicateElement);
+      });
     });
   };
 

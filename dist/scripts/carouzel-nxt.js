@@ -343,25 +343,19 @@ var CarouzelNXT;
         if (shouldAdd === void 0) { shouldAdd = false; }
         if (dir === _dir.n) {
             core.$nextBtn.isActive = shouldAdd;
-            if (shouldAdd) {
-                removeClass(core.$nextBtn.el, _disabledCls);
-                removeAttribute(core.$nextBtn.el, "disabled");
-            }
-            else {
-                addClass(core.$nextBtn.el, _disabledCls);
-                addAttribute(core.$nextBtn.el, "disabled", "disabled");
-            }
+            shouldAdd
+                ? (removeClass(core.$nextBtn.el, _disabledCls),
+                    removeAttribute(core.$nextBtn.el, "disabled"))
+                : (addClass(core.$nextBtn.el, _disabledCls),
+                    addAttribute(core.$nextBtn.el, "disabled", "disabled"));
         }
-        if (dir === _dir.p) {
+        else if (dir === _dir.p) {
             core.$prevBtn.isActive = shouldAdd;
-            if (shouldAdd) {
-                removeClass(core.$prevBtn.el, _disabledCls);
-                removeAttribute(core.$prevBtn.el, "disabled");
-            }
-            else {
-                addClass(core.$prevBtn.el, _disabledCls);
-                addAttribute(core.$prevBtn.el, "disabled", "disabled");
-            }
+            shouldAdd
+                ? (removeClass(core.$prevBtn.el, _disabledCls),
+                    removeAttribute(core.$prevBtn.el, "disabled"))
+                : (addClass(core.$prevBtn.el, _disabledCls),
+                    addAttribute(core.$prevBtn.el, "disabled", "disabled"));
         }
     };
     var go2next = function (event, core) {
@@ -381,8 +375,8 @@ var CarouzelNXT;
         addClass(core.$arrowsWrap, _hiddenCls);
         addClass(core.$navWrap, _hiddenCls);
         addClass(core.$pageWrap, _hiddenCls);
-        toggleArrow(_dir.n, core, false);
-        toggleArrow(_dir.p, core, false);
+        toggleArrow(_dir.n, core, true);
+        toggleArrow(_dir.p, core, true);
         core.eH.push(eventHandler(core.$nextBtn.el, _events.c, function (event) {
             go2next(event, core);
         }));
@@ -405,8 +399,25 @@ var CarouzelNXT;
         }));
     };
     var manageDuplicates = function (core) {
+        var duplicateArr = [];
+        var duplicateElement;
         core.o.bps.forEach(function (bp) {
-            console.log(bp._2Show);
+            bp.pDups = [];
+            bp.nDups = [];
+            duplicateArr = core.$slides.slice(0, bp._2Show);
+            duplicateArr.forEach(function (slide) {
+                duplicateElement = slide.cloneNode(true);
+                addClass(duplicateElement, _duplicateCls);
+                removeAttribute(duplicateElement, "id");
+                bp.nDups.push(duplicateElement);
+            });
+            duplicateArr = core.$slides.slice(-bp._2Show);
+            duplicateArr.forEach(function (slide) {
+                duplicateElement = slide.cloneNode(true);
+                addClass(duplicateElement, _duplicateCls);
+                removeAttribute(duplicateElement, "id");
+                bp.pDups.push(duplicateElement);
+            });
         });
     };
     var initCarouzelNxt = function (slider, options) {
